@@ -64,52 +64,19 @@ class DBConnect(object):
             return None
 
     @monitor_network_state
-    def create_request(self, userID, mvz, start_date, finish_date,
-                       sum_extra_total,
-                       sumtotal, nds, square, contragent, okpo,
-                       num_main_contract,
-                       num_add_contract, date_main_contract_start,
-                       date_add_contract, text, filename,
-                       date_main_contract_end,
-                       price_meter, type_business,mvz_choice_list):
+    def create_request(self, userID, positionName, plannedDate, fileRequirements, commentText):
         """ Executes procedure that creates new request.
         """
         query = '''
-        exec contracts.create_contract @UserID = ?,
-                                    @MVZ = ?,
-                                    @DateStart = ?,
-                                    @DateFinish = ?,
-                                    @SumExtraNoTax = ?,
-                                    @SumNoTax = ?,
-                                    @Tax = ?,
-                                    @Square = ?,
-                                    @Contragent = ?,
-                                    @OKPO = ?,
-                                    @NumMain = ?,
-                                    @NumAdditional = ?,
-                                    @DateMain = ?,
-                                    @DateAdditional = ?,
-                                    @Description = ?,
-                                    @Filename = ?,
-                                    @DateMainEnd = ?,
-                                    @PriceSquareMeter = ?,
-                                    @TypeBusiness = ?,
-                                    @ObjectIDLIst = ?
+        exec recruiting.create_vacancy @UserID = ?,
+                                    @positionName = ?,
+                                    @plannedDate = ?,
+                                    @fileRequirements = ?,
+                                    @commentText = ?
             '''
-        # print(userID, mvz, start_date, finish_date,
-        #       sum_extra_total, sumtotal, nds, square,
-        #       contragent, okpo, num_main_contract,
-        #       num_add_contract, date_main_contract_start,
-        #       date_add_contract, text, filename,
-        #       date_main_contract_end, price_meter, type_business,mvz_choice_list)
+        # print(userID, positionName, plannedDate, fileRequirements, commentText)
         try:
-            self.__cursor.execute(query, userID, mvz, start_date, finish_date,
-                                  sum_extra_total, sumtotal, nds, square,
-                                  contragent, okpo, num_main_contract,
-                                  num_add_contract, date_main_contract_start,
-                                  date_add_contract, text, filename,
-                                  date_main_contract_end, price_meter,
-                                  type_business,mvz_choice_list)
+            self.__cursor.execute(query, userID, positionName, plannedDate, fileRequirements, commentText)
             request_allowed = self.__cursor.fetchone()[0]
             self.__db.commit()
             return request_allowed

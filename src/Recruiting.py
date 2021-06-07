@@ -79,8 +79,8 @@ def main():
                      pwd=db_info.get('PWD'))
     try:
         with conn as sql:
-            # UserLogin = getpass.getuser()
-            UserLogin = 'o.fortunatova'
+            UserLogin = getpass.getuser()
+            # UserLogin = 'o.fortunatova'
             access_permitted = sql.get_user_info(UserLogin)
             if not access_permitted:
                 tkr.AccessError()

@@ -10,7 +10,7 @@ from multiselect import MultiselectMenu
 from tkcalendar import DateEntry
 from tkinter import ttk, messagebox
 from tkinter.filedialog import askopenfile
-from shutil import copy2
+from shutil import copy, copy2
 from pathlib import Path
 from tkinter import filedialog as fd
 import tkinter.font as tkFont
@@ -378,14 +378,13 @@ class CreateForm(RecruitingFrame):
         self.main_label = tk.Label(top,
                                    text='Форма создания заявки на поиск персонала',
                                    padx=10, pady=5, font=('Arial', 9, 'bold'))
-        self.responsibleID, self.responsible = zip(*responsible)
         self._top_pack()
 
         # First Fill Frame with (MVZ, business)
         row1_cf = tk.Text(self, padx=18, height=3, relief=tk.FLAT, bg='#f1f1f1')
-        row1_cf.insert(tk.INSERT, 'Данные инициатора:')
+        row1_cf.insert(tk.INSERT, 'Подразделение инициатора:')
         row1_cf.insert(tk.INSERT, str('\n' + self.userOffice))
-        row1_cf.insert(tk.END, str('\n' + self.userDepartment))
+        row1_cf.insert(tk.INSERT, str('\n' + self.userDepartment))
         row1_cf.tag_add('title', 1.0, '1.end')
         row1_cf.tag_add('style', 2.0, '2.end')
         row1_cf.tag_add('style', 3.0, '3.end')
@@ -433,8 +432,7 @@ class CreateForm(RecruitingFrame):
                                                text='1. Откройте и заполните файл требований:',
                                                padx=8)
         bt_open_file= ttk.Button(row5_cf, text="Открыть", width=20,
-                               command=self.open_file_template,
-                               style='ButtonGreen.TButton')
+                               command=self.open_file_requirements)
         bt_open_file.pack(side=tk.RIGHT, padx=15, pady=0)
 
         self._row5_pack()
@@ -444,7 +442,7 @@ class CreateForm(RecruitingFrame):
         self.file_label = tk.Label(row6_cf, text='2. Прикрепите файл требований:', padx=8)
         self.btn_text = tk.StringVar()
         bt_upload = ttk.Button(row6_cf, textvariable=self.btn_text, width=20,
-                               command=self._file_opener,
+                               command=self._upload_requirements,
                                style='ButtonGreen.TButton')
         self.btn_text.set("Выбрать файл")
         bt_upload.pack(side=tk.RIGHT, padx=15, pady=0)
@@ -456,7 +454,7 @@ class CreateForm(RecruitingFrame):
         self.customFont = tkFont.Font(family="Arial", size=10)
         self.desc_text = tk.Text(text_cf,
                                  font=self.customFont)  # input and output box
-        self.desc_text.configure(width=115)
+        self.desc_text.configure(width=100)
         self.desc_text.pack(in_=text_cf, expand=True)
 
         self._row6_pack()
@@ -472,7 +470,7 @@ class CreateForm(RecruitingFrame):
 
         bt2 = ttk.Button(bottom_cf, text="Очистить", width=10,
                          command=self._clear, style='ButtonRed.TButton')
-        bt2.pack(side=tk.RIGHT, padx=15, pady=10)
+        bt2.pack(side=tk.RIGHT, padx=0, pady=0)
 
         bt1 = ttk.Button(bottom_cf, text="Создать", width=10,
                          command=self._create_request,
@@ -491,28 +489,34 @@ class CreateForm(RecruitingFrame):
         text_cf.pack(side=tk.TOP, fill=tk.X, expand=True, padx=15, pady=15)
 
 
-    def open_file_template(self):
+    def open_file_requirements(self):
         pathToFile = UPLOAD_PATH + "\\" + 'Требования.docx'
         return os.startfile(pathToFile)
 
-    def _file_opener(self):
+    def _upload_requirements(self):
         filename = fd.askopenfilename()
         if filename:
-            copy2(filename, UPLOAD_PATH)
-            path = Path(filename)
+            # Rename file before upload
+            now = str(datetime.now())[:19]
+            now = now.replace(":", "_")
+            now = now.replace(" ", "_")
+            new_filename = "Требования_" + now + ".docx"
+            distPath = UPLOAD_PATH + "\\" + new_filename
+            copy(filename, distPath)
+            path = Path(distPath)
             self.upload_filename = path.name
-            # self.file_label.config(text='Файл добавлен')
             self.btn_text.set("Файл добавлен")
-
 
     def _remove_upload_file(self):
         os.remove(UPLOAD_PATH + '\\' + self.upload_filename)
-        self.file_label.config(text='Файл не выбран')
 
     def _clear(self):
         self.candidatePositionEntry.configure(state="normal")
         self.candidatePositionEntry.delete(0, tk.END)
         self.desc_text.delete("1.0", tk.END)
+        self.btn_text.set("Выбрать файл")
+        self.upload_filename = str()
+        self.plannedClosingDateWidget.set_date(datetime.now())
 
     def _fill_from_PreviewForm(self, office, num_main_contract_entry,
                                date_main_contract_start, date_main_contract_end
@@ -555,50 +559,19 @@ class CreateForm(RecruitingFrame):
         return dat
 
     def _create_request(self):
-        messagetitle = 'Добавление договора'
-        sumtotal = self.sum_entry.get()
-        sum_extra_total = float(self.sum_extra_total.get_float_form()
-                                if self.sum_extra_entry.get() else 0)
-        square = float(self.square.get_float_form()
-                       if self.square_entry.get() else 0)
-        price_meter = float(self.square_cost.get_float_form()
-                            if self.square_cost_entry.get() else 0)
-        is_validated = self._validate_request_creation(messagetitle, sumtotal)
+        messagetitle = 'Создание заявки'
+        is_validated = self._validate_request_creation(messagetitle)
         if not is_validated:
             return
 
-        request = {'office': self.mvz_sap,  # self.mvz_sap.cget('text') or None,
-                   # 'office': self.office_box.get(),
-                   # 'categoryID': self.categories[self.category_box.get()],
-                   'start_date': self._convert_date(
-                       self.date_start_entry.get()),
-                   'finish_date': self._convert_date(
-                       self.date_finish_entry.get()),
-                   'sum_extra_total': sum_extra_total,
-                   'sumtotal': sumtotal,
-                   'nds': self.nds.get(),
-                   'square': square,
-                   'contragent': self.contragent_entry.get().strip().replace(
-                       '\n', '') or None,
-                   'okpo': self.okpo_entry.get(),
-                   'num_main_contract': self.num_main_contract_entry.get(),
-                   'num_add_contract': self.num_add_contract_entry.get(),
-                   'date_main_contract_start': self._convert_date(
-                       self.date_main_contract_start.get()),
-                   'date_add_contract': self._convert_date(
-                       self.date_add_contract.get()),
-                   'text': self.desc_text.get("1.0", tk.END).strip(),
-                   'filename': self.upload_filename,
-                   'date_main_contract_end': self._convert_date(
-                       self.date_main_contract_end.get()),
-                   'price_meter': price_meter,
-                   'responsible': self.responsible_box.get(),
-                   'office_choice_list': ','.join(
-                       map(str, self.office_choice_list))
+        request = {'userID': self.userID,
+                   'positionName': self.candidatePositionEntry.get(),
+                   'plannedDate': self._convert_date(self.plannedClosingDateWidget.get()),
+                   'fileRequirements': self.upload_filename,
+                   'commentText': self.desc_text.get("1.0", tk.END).strip()
 
                    }
-        created_success = self.conn.create_request(userID=self.userID,
-                                                   **request)
+        created_success = self.conn.create_request(**request)
         if created_success == 1:
             messagebox.showinfo(
                 messagetitle, 'Договор добавлен'
@@ -622,11 +595,11 @@ class CreateForm(RecruitingFrame):
         return date_time_obj.date()
 
     def _row1_pack(self):
-        # self.office_label.pack(side=tk.LEFT)
         pass
+
     def _row2_pack(self):
         self.candidatePositionLabel.pack(side=tk.LEFT)
-        self.candidatePositionEntry.pack(side=tk.LEFT, padx=0)
+        self.candidatePositionEntry.pack(side=tk.LEFT, padx=2)
 
     def _row3_pack(self):
         self.plannedClosingDateLabel.pack(side=tk.LEFT)
@@ -638,8 +611,6 @@ class CreateForm(RecruitingFrame):
 
     def _row5_pack(self):
         self.manualForFile.pack(side=tk.LEFT, padx=0)
-        # self.manualForFile.pack(fill="both", expand=False)
-        # self.manualForFile.fit_height()
 
     def _row6_pack(self):
         self.file_label.pack(side=tk.LEFT, padx=0)
@@ -647,24 +618,19 @@ class CreateForm(RecruitingFrame):
     def _top_pack(self):
         self.main_label.pack(side=tk.TOP, expand=False, anchor=tk.NW)
 
-    def _validate_request_creation(self, messagetitle, sumtotal):
+    def _validate_request_creation(self, messagetitle):
         """ Check if all fields are filled properly. """
-        if not self.office_current.get():
+        if not self.candidatePositionEntry.get():
             messagebox.showerror(
-                messagetitle, 'Не выбран объект'
+                messagetitle, 'Не указана должность вакансии'
+            )
+            return False
+        if not self.upload_filename:
+            messagebox.showerror(
+                messagetitle, 'Вы не загрузили файл требований'
             )
             return False
 
-        if not self.office_choice_list:
-            messagebox.showerror(
-                messagetitle, 'Не выбраны адреса к договору'
-            )
-            return False
-        if not self.candidatePositionEntry.get():
-            messagebox.showerror(
-                messagetitle, 'Не указан номер основного договора'
-            )
-            return False
 
         return True
 
@@ -799,6 +765,7 @@ class UpdateForm(RecruitingFrame):
         self.num_main_contract_entry.delete(0, tk.END)
         self.desc_text.delete("1.0", tk.END)
         self.file_label.config(text='Файл не выбран')
+        self.upload_filename = str()
 
     def _fill_from_UpdateForm(self, office, id, num_main_contract,
                               date_main_contract_start,
@@ -1063,13 +1030,13 @@ class PreviewForm(RecruitingFrame):
                                     name='preview_cf')
 
         # column name and width
-        self.headings = {'№ п/п': 40, 'ID': 0, 'UserID': 0, 'Офис': 250,
+        self.headings = {'№ п/п': 40, 'ID': 0, 'Номер заявки': 90,'UserID': 0, 'Офис': 250,
                          'Департамент': 0,
                          'Инициатор': 120, 'Дата внесения': 90,
                          'Плановая дата': 90,
                          'Должность': 0, 'ResponsibleUserID': 0,
                          'Ответственный от HR': 120,
-                         'StatusID': 0, 'Тип заявки': 50, 'Статус': 50,
+                         'StatusID': 0, 'Тип заявки': 50, 'Статус': 70,
                          'Комментарий': 0,
                          'Файл заявки': 0, 'Файл резюме': 0
                          }
