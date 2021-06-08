@@ -6,9 +6,9 @@ import getpass, os, zipfile, zlib
 SOURCE = zlib.decompress(upd_path).decode()
 TARGET = os.path.join('C:\\Users', getpass.getuser(), 'AppData\\Local')
 DESKTOP = os.path.join('C:\\Users', getpass.getuser(), 'Desktop')
-WDIR = os.path.join(TARGET, 'Contracts')
-TARGETFILE = os.path.join(WDIR, 'contracts_checker.exe')
-ICONFILE = os.path.join(WDIR, 'resources\\paper.ico')
+WDIR = os.path.join(TARGET, 'Recruiting')
+TARGETFILE = os.path.join(WDIR, 'recruiting_checker.exe')
+ICONFILE = os.path.join(WDIR, 'resources\\file.ico')
 
 print(TARGETFILE)
 
@@ -19,7 +19,7 @@ class SuccessMsg(Tk):
         super().__init__()
         self.withdraw()  # Do not show main window
         messagebox.showinfo(
-            'Учёт договоров аренды',
+            'Заявки на персонал',
             'Установка завершена.\n'
             'На рабочем столе создан ярлык для запуска.'
         )
@@ -30,7 +30,7 @@ def create_shortcut(path, target='', wDir='', icon=''):
     shortcut = shell.CreateShortCut(path)
     shortcut.Targetpath = target
     shortcut.WorkingDirectory = wDir
-    shortcut.Description = 'Учёт договоров аренды'
+    shortcut.Description = 'Заявки на персонал'
     if icon:
         shortcut.IconLocation = icon
     shortcut.save()
@@ -38,9 +38,9 @@ def create_shortcut(path, target='', wDir='', icon=''):
 def main():
     print('Выполняется начальная установка и создание ярлыков...')
     # extract actual version of app
-    with zipfile.ZipFile(os.path.join(SOURCE, 'Contracts.zip'), 'r') as zip_ref:
+    with zipfile.ZipFile(os.path.join(SOURCE, 'Recruiting.zip'), 'r') as zip_ref:
         zip_ref.extractall(TARGET)
-    create_shortcut(os.path.join(DESKTOP, 'Учёт договоров аренды.lnk'),
+    create_shortcut(os.path.join(DESKTOP, 'Заявки на персонал.lnk'),
                     TARGETFILE,
                     WDIR,
                     ICONFILE)

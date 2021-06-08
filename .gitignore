@@ -32,6 +32,7 @@ MANIFEST
 *.manifest
 *.spec
 !src/recruiting.spec
+src/resources/Требования.docx
 
 # DB connect info
 pwd.py

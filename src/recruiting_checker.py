@@ -11,7 +11,7 @@ from singleinstance import Singleinstance
 from splash_screen import SplashScreen
 from time import sleep
 from tkinter import Label, PhotoImage
-from tkContracts import NetworkError, UnexpectedError
+from tkRecruiting import NetworkError, UnexpectedError
 from shutil import copy2
 import os, sys, zlib
 
@@ -46,7 +46,7 @@ def check_updates_and_run_app():
     app_versions = next(os.walk(SOURCE))[1]
     # Determine current version of application
     try:
-        with open('contracts.inf', 'r') as f:
+        with open('recruiting.inf', 'r') as f:
             version_info = f.readline()
             version_info = versioned(version_info)
     except FileNotFoundError:
@@ -61,10 +61,10 @@ def check_updates_and_run_app():
             update_files(path, *data)
     # Update version in contracts.inf
     if new_versions:
-        with open('contracts.inf', 'w') as f:
+        with open('recruiting.inf', 'w') as f:
             f.write(new_versions[0])
     # Run main executable
-    os.startfile("contracts.exe")
+    os.startfile("recruiting.exe")
     sleep(5)
 
 
@@ -76,18 +76,18 @@ def main():
                         exception_handlers=exception_handlers)
     root.overrideredirect(True)
 
-    logo = PhotoImage(file='resources/paper.png')
+    logo = PhotoImage(file='resources/file.png')
     logo_label = Label(root, image=logo)
-    logo_label.pack(side='top', pady=40)
+    logo_label.pack(side='top', pady=100)
 
-    copyright_label = Label(root, text='© 2020 Офис контролинга логистики')
-    copyright_label.pack(side='bottom', pady=5)
+    copyright_label = Label(root, text='© 2021 Офис прогнозирования \n Департамент мастер-данных и отчетности')
+    copyright_label.pack(side='bottom', pady=15)
 
     label = Label(root,
                   text='Выполняется поиск обновлений и запуск приложения...')
     label.pack(expand='yes')
 
-    root.after(300, root.task)
+    root.after(500, root.task)
     root.mainloop()
 
 

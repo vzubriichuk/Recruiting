@@ -33,9 +33,9 @@ def apply_update():
     from zlib import decompress
 
     upd_path = decompress(upd_path).decode()
-    for file in ('contracts_checker.exe', 'contracts_checker.exe.manifest'):
+    for file in ('recruiting_checker.exe', 'recruiting_checker.exe.manifest'):
         copy2(os.path.join(upd_path, file), '.')
-    with open('contracts_checker.inf', 'w') as f:
+    with open('recruiting_checker.inf', 'w') as f:
         f.write(UPDATER_VERSION)
     raise RestartRequiredError(UPDATER_VERSION,
                                'Выполнено критическое обновление.\nПерезапустите приложение')
@@ -51,13 +51,13 @@ def check_meta_update():
     processes = WMI.InstancesOf('Win32_Process')
     try:
         pid = next(p.Properties_('ProcessID').Value for p in processes
-                   if p.Properties_('Name').Value == 'contracts_checker.exe')
+                   if p.Properties_('Name').Value == 'recruiting_checker.exe')
         os.kill(pid, SIGTERM)
     except (StopIteration, PermissionError):
         pass
     # version comparing
     try:
-        with open('contracts_checker.inf', 'r') as f:
+        with open('recruiting_checker.inf', 'r') as f:
             version_info = f.readline()
     except FileNotFoundError:
         from _version import __version__ as version_info

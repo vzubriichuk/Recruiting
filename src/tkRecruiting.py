@@ -28,11 +28,14 @@ EMAIL_TO = b'\xd0\xa4\xd0\xbe\xd0\xb7\xd0\xb7\xd0\xb8|\
 \xd0\x9b\xd0\xbe\xd0\xb3\xd0\xb8\xd1\x81\xd1\x82\xd0\xb8\xd0\xba\xd0\xb0|\
 \xd0\x90\xd0\xbd\xd0\xb0\xd0\xbb\xd0\xb8\xd1\x82\xd0\xb8\xd0\xba\xd0\xb8'.decode()
 # example of path to independent report
-REPORT_PATH = zlib.decompress(b'x\x9c\x8b\x89I\xcb\xaf\xaa\xaa\xd4\xcbI\xcc\
-\x8bq\xc9O.\xcdM\xcd+)\x8e\xf1\xc8\xcfI\xc9\xccK\x8fqI-H,*\x81\x88\xf9\xe4\
-\xa7g\x16\x97df\'\xc6\xb8e\xe6\xc5\\Xpa\xc3\xc5\xc6\x0b\xfb/6\\\xd8za\x0b\x10\
-\xef\x06\xe2\xbd\x17v\\\xd8\x1a\x7fa;P\xaa\t(\x01$c.L\xb9\xb0\xef\xc2~\x85\x0b\
-\xfb\x80"\xed\x17\xb6\x02\xc9n\x00\x9b\x8c?\xef').decode()
+TEMPLATE_PATH = zlib.decompress(b'x\x9c\x8b\x89I\xcb\xaf\xaa\xaa\xd4\xcbI\xcc'
+                                b'\x8bq\xc9O.\xcdM\xcd+)\x8e\xf1\xc8\xcfI\xc9'
+                                b'\xccK\x8fqI-H,*\x81\x88\x05g\xe6\x14\xe4\xc7'
+                                b'\\\x98}a\xdf\x85\xcd\x17v\\l\xbc\xd8ta\xc7\x85]'
+                                b'\x176\xc4\xbb\xbb\x06\xf9\xba\x06\xc7\x04\xa4'
+                                b'\x16\xa5\xe5\x17\xe5\xa6\x16\xc5\x94\xa4&g\xc4'
+                                b'\x04\xa5&\x17\x95f\x96\x00M\x01\x00\xa74-'
+                                b'\x18').decode()
 
 UPLOAD_PATH = zlib.decompress(b"x\x9c\x8b\x89I\xcb\xaf\xaa\xaa\xd4\xcbI\xcc"
                               b"\x8bq\xc9O.\xcdM\xcd+)\x8e\xf1\xc8\xcfI\xc9"
@@ -40,7 +43,6 @@ UPLOAD_PATH = zlib.decompress(b"x\x9c\x8b\x89I\xcb\xaf\xaa\xaa\xd4\xcbI\xcc"
                               b"\x97df'\xc6\xb8e\xe6\xc5\\\x98x\xb1\xef\xc2"
                               b"\x96\x0b\xdb.l\xbd\xd8\x14\x13Z\x90\x93\x9f"
                               b"\x98\x02\x00\xa3\x8c!\xb1").decode()
-
 
 
 class PaymentsError(Exception):
@@ -245,21 +247,6 @@ class RecruitingApp(tk.Tk):
 
         self.geometry('{}x{}+{}+{}'.format(w, h, start_x, start_y))
 
-    def _fill_CreateForm(self, Объект, **kwargs):
-        """ Control function to transfer data from Preview- to CreateForm. """
-        # print(kwargs)
-        num_main_contract_heading = kwargs['№ договора']
-        date_main_contract_heading = kwargs['Дата договора (начало)']
-        date_main_contract_heading_end = kwargs['Дата договора (конец)']
-        contragent_heading = kwargs['Арендодатель']
-        responsible = kwargs['Бизнес']
-        okpo = kwargs['ЕГРПОУ']
-        frame = self._frames['CreateForm']
-        frame._fill_from_PreviewForm(Объект, num_main_contract_heading,
-                                     date_main_contract_heading,
-                                     date_main_contract_heading_end,
-                                     contragent_heading, responsible, okpo)
-
     def _fill_UpdateForm(self, Объект, **kwargs):
         """ Control function to transfer data from Preview- to CreateForm. """
         id = kwargs['ID']
@@ -380,7 +367,7 @@ class CreateForm(RecruitingFrame):
                                    padx=10, pady=5, font=('Arial', 9, 'bold'))
         self._top_pack()
 
-        # First Fill Frame with (MVZ, business)
+        # First Fill Frame
         row1_cf = tk.Text(self, padx=18, height=3, relief=tk.FLAT, bg='#f1f1f1')
         row1_cf.insert(tk.INSERT, 'Подразделение инициатора:')
         row1_cf.insert(tk.INSERT, str('\n' + self.userOffice))
@@ -388,28 +375,66 @@ class CreateForm(RecruitingFrame):
         row1_cf.tag_add('title', 1.0, '1.end')
         row1_cf.tag_add('style', 2.0, '2.end')
         row1_cf.tag_add('style', 3.0, '3.end')
-        row1_cf.tag_config('title', font=("Calibri", 10, 'bold'), justify=tk.LEFT)
-        row1_cf.tag_config('style', font=("Calibri", 10, 'normal'), justify=tk.LEFT)
+        row1_cf.tag_config('title', font=("Calibri", 10, 'bold'),
+                           justify=tk.LEFT)
+        row1_cf.tag_config('style', font=("Calibri", 10, 'normal'),
+                           justify=tk.LEFT)
         row1_cf.configure(state="disabled")
 
         self._row1_pack()
 
         # Second Fill Frame
         row2_cf = tk.Frame(self, name='row2_cf', padx=10)
-        self.candidatePositionLabel = tk.Label(row2_cf,
-                                               text='Название должности кандидата:',
-                                               padx=7)
-        self.candidatePositionEntry = tk.Entry(row2_cf, width=40)
+        self.separator = ttk.Separator(row2_cf, orient='horizontal')
+
+
 
         self._row2_pack()
 
         # Third Fill Frame
         row3_cf = tk.Frame(self, name='row3_cf', padx=10)
-        self.plannedClosingDateLabel = tk.Label(row3_cf,
+        self.requirements_label = tk.Label(row3_cf,
+                                      text='1. Откройте и заполните файл требований:',
+                                      padx=8)
+        bt_open_file = ttk.Button(row3_cf, text="Открыть", width=20,
+                                  command=self.open_file_requirements)
+        bt_open_file.pack(side=tk.RIGHT, padx=15, pady=0)
+
+
+
+        self._row3_pack()
+
+        # Fourth Fill Frame
+        row4_cf = tk.Frame(self, name='row4_cf', padx=10)
+        self.attach_label = tk.Label(row4_cf,
+                                   text='2. Прикрепите файл требований:',
+                                   padx=8)
+        self.upload_btn_text = tk.StringVar()
+        bt_upload = ttk.Button(row4_cf, textvariable=self.upload_btn_text,
+                               width=20,
+                               command=self._upload_requirements,
+                               style='ButtonGreen.TButton')
+        self.upload_btn_text.set("Выбрать файл")
+        bt_upload.pack(side=tk.RIGHT, padx=15, pady=0)
+
+        self._row4_pack()
+
+        # Fifth Fill Frame
+        row5_cf = tk.Frame(self, name='row5_cf', padx=10)
+        self.candidatePositionLabel = tk.Label(row5_cf,
+                                               text='Название должности кандидата:',
+                                               padx=7)
+        self.candidatePositionEntry = tk.Entry(row5_cf, width=40)
+
+        self._row5_pack()
+
+        # Six Fill Frame
+        row6_cf = tk.Frame(self, name='row6_cf', padx=10)
+        self.plannedClosingDateLabel = tk.Label(row6_cf,
                                                 text='Плановая дата закрытия заявки:',
                                                 padx=7)
         self.plannedClosingDate = tk.StringVar()
-        self.plannedClosingDateWidget = DateEntry(row3_cf, width=16,
+        self.plannedClosingDateWidget = DateEntry(row6_cf, width=16,
                                                   state='readonly',
                                                   textvariable=self.plannedClosingDate,
                                                   font=('Arial', 9),
@@ -417,35 +442,6 @@ class CreateForm(RecruitingFrame):
                                                   borderwidth=2,
                                                   locale='ru_RU')
 
-
-        self._row3_pack()
-
-        # Fourth Fill Frame
-        row4_cf = tk.Frame(self, name='row4_cf', padx=15)
-        self.separator = ttk.Separator(row4_cf, orient='horizontal')
-
-        self._row4_pack()
-
-        # Fifth Fill Frame
-        row5_cf = tk.Frame(self, name='row5_cf', padx=10)
-        self.manualForFile = tk.Label(row5_cf,
-                                               text='1. Откройте и заполните файл требований:',
-                                               padx=8)
-        bt_open_file= ttk.Button(row5_cf, text="Открыть", width=20,
-                               command=self.open_file_requirements)
-        bt_open_file.pack(side=tk.RIGHT, padx=15, pady=0)
-
-        self._row5_pack()
-
-        # Six Fill Frame
-        row6_cf = tk.Frame(self, name='row6_cf', padx=10)
-        self.file_label = tk.Label(row6_cf, text='2. Прикрепите файл требований:', padx=8)
-        self.btn_text = tk.StringVar()
-        bt_upload = ttk.Button(row6_cf, textvariable=self.btn_text, width=20,
-                               command=self._upload_requirements,
-                               style='ButtonGreen.TButton')
-        self.btn_text.set("Выбрать файл")
-        bt_upload.pack(side=tk.RIGHT, padx=15, pady=0)
 
         # Text Frame
         text_cf = ttk.LabelFrame(self, text=' Комментарий к заявке ',
@@ -463,8 +459,6 @@ class CreateForm(RecruitingFrame):
         bottom_cf = tk.Frame(self, name='bottom_cf')
 
         bt3 = ttk.Button(bottom_cf, text="Назад", width=10,
-                         # command=self._deselect_checked_mvz)
-                         # command=self.button_back(controller))
                          command=lambda: controller._show_frame('PreviewForm'))
         bt3.pack(side=tk.RIGHT, padx=15, pady=10)
 
@@ -488,15 +482,14 @@ class CreateForm(RecruitingFrame):
         row6_cf.pack(side=tk.TOP, fill=tk.X, pady=5)
         text_cf.pack(side=tk.TOP, fill=tk.X, expand=True, padx=15, pady=15)
 
-
     def open_file_requirements(self):
-        pathToFile = UPLOAD_PATH + "\\" + 'Требования.docx'
+        pathToFile = 'resources\\Требования.docx'
         return os.startfile(pathToFile)
 
     def _upload_requirements(self):
         filename = fd.askopenfilename()
         if filename:
-            # Rename file before upload
+            # Rename file while uploading
             now = str(datetime.now())[:19]
             now = now.replace(":", "_")
             now = now.replace(" ", "_")
@@ -505,7 +498,7 @@ class CreateForm(RecruitingFrame):
             copy(filename, distPath)
             path = Path(distPath)
             self.upload_filename = path.name
-            self.btn_text.set("Файл добавлен")
+            self.upload_btn_text.set("Файл добавлен")
 
     def _remove_upload_file(self):
         os.remove(UPLOAD_PATH + '\\' + self.upload_filename)
@@ -514,7 +507,7 @@ class CreateForm(RecruitingFrame):
         self.candidatePositionEntry.configure(state="normal")
         self.candidatePositionEntry.delete(0, tk.END)
         self.desc_text.delete("1.0", tk.END)
-        self.btn_text.set("Выбрать файл")
+        self.upload_btn_text.set("Выбрать файл")
         self.upload_filename = str()
         self.plannedClosingDateWidget.set_date(datetime.now())
 
@@ -566,7 +559,8 @@ class CreateForm(RecruitingFrame):
 
         request = {'userID': self.userID,
                    'positionName': self.candidatePositionEntry.get(),
-                   'plannedDate': self._convert_date(self.plannedClosingDateWidget.get()),
+                   'plannedDate': self._convert_date(
+                       self.plannedClosingDateWidget.get()),
                    'fileRequirements': self.upload_filename,
                    'commentText': self.desc_text.get("1.0", tk.END).strip()
 
@@ -574,17 +568,15 @@ class CreateForm(RecruitingFrame):
         created_success = self.conn.create_request(**request)
         if created_success == 1:
             messagebox.showinfo(
-                messagetitle, 'Договор добавлен'
+                messagetitle, 'Заявка на поиск персонала создана'
             )
             self._clear()
             self.controller._show_frame('PreviewForm')
         else:
             self._remove_upload_file()
             messagebox.showerror(
-                messagetitle, 'Произошла ошибка при добавлении договора'
+                messagetitle, 'Произошла ошибка при добавлении заявки'
             )
-
-            # МВЗ, Договор, Арендодатель, ЕГРПОУ, Описание
 
     def _convert_str_date(self, date):
         """ Take str and convert it into date format.
@@ -598,22 +590,26 @@ class CreateForm(RecruitingFrame):
         pass
 
     def _row2_pack(self):
+        self.separator.pack(fill='x')
+
+
+    def _row3_pack(self):
+        self.requirements_label.pack(side=tk.LEFT, padx=0)
+
+    def _row4_pack(self):
+        self.attach_label.pack(side=tk.LEFT, padx=0)
+
+        # pass
+
+    def _row5_pack(self):
         self.candidatePositionLabel.pack(side=tk.LEFT)
         self.candidatePositionEntry.pack(side=tk.LEFT, padx=2)
 
-    def _row3_pack(self):
+    def _row6_pack(self):
         self.plannedClosingDateLabel.pack(side=tk.LEFT)
         self.plannedClosingDateWidget.pack(side=tk.LEFT, padx=3)
 
-    def _row4_pack(self):
-        # self.separator.pack(fill='x')
-        pass
 
-    def _row5_pack(self):
-        self.manualForFile.pack(side=tk.LEFT, padx=0)
-
-    def _row6_pack(self):
-        self.file_label.pack(side=tk.LEFT, padx=0)
 
     def _top_pack(self):
         self.main_label.pack(side=tk.TOP, expand=False, anchor=tk.NW)
@@ -630,7 +626,6 @@ class CreateForm(RecruitingFrame):
                 messagetitle, 'Вы не загрузили файл требований'
             )
             return False
-
 
         return True
 
@@ -897,6 +892,7 @@ class UpdateForm(RecruitingFrame):
     def _row6_pack(self):
         self.file_label.pack(side=tk.RIGHT, padx=0)
 
+
     def _top_pack(self):
         self.main_label.pack(side=tk.TOP, expand=False, anchor=tk.NW)
 
@@ -1030,11 +1026,12 @@ class PreviewForm(RecruitingFrame):
                                     name='preview_cf')
 
         # column name and width
-        self.headings = {'№ п/п': 40, 'ID': 0, 'Номер заявки': 90,'UserID': 0, 'Офис': 250,
+        self.headings = {'№ п/п': 40, 'ID': 0, 'Номер заявки': 90, 'UserID': 0,
+                         'Офис': 250,
                          'Департамент': 0,
                          'Инициатор': 120, 'Дата внесения': 90,
                          'Плановая дата': 90,
-                         'Должность': 0, 'ResponsibleUserID': 0,
+                         'Должность кандидата': 0, 'ResponsibleUserID': 0,
                          'Ответственный от HR': 120,
                          'StatusID': 0, 'Тип заявки': 50, 'Статус': 70,
                          'Комментарий': 0,
@@ -1059,14 +1056,14 @@ class PreviewForm(RecruitingFrame):
         bottom_cf = tk.Frame(self, name='bottom_cf')
         # Show create buttons only for users with rights
         if self.user_info.isAccess in (1, 2):
-            bt1 = ttk.Button(bottom_cf, text="Добавить", width=25,
+            bt1 = ttk.Button(bottom_cf, text="Создать заявку", width=25,
                              command=lambda: controller._show_frame(
                                  'CreateForm'))
             bt1.pack(side=tk.LEFT, padx=10, pady=10)
 
-            bt2 = ttk.Button(bottom_cf, text="Добавить доп.согл. из договора",
-                             width=30,
-                             command=self._create_from_current)
+            bt2 = ttk.Button(bottom_cf, text="Назначить",
+                             width=20,
+                             command=self._edit_current_contract)
             bt2.pack(side=tk.LEFT, padx=10, pady=10)
 
             if self.userID in (2, 6, 1):
@@ -1121,18 +1118,6 @@ class PreviewForm(RecruitingFrame):
         self.office_box.set('Все')
         self.responsible_box.set('Все')
         self.status_box.set('Все')
-
-    def _create_from_current(self):
-        """ Raises CreateForm with partially filled labels/entries. """
-        curRow = self.table.focus()
-
-        if curRow:
-            # extract info to be putted in CreateForm
-            to_fill = dict(zip(self.table["columns"],
-                               self.table.item(curRow).get('values')))
-            # print(to_fill)
-            self.controller._fill_CreateForm(**to_fill)
-            self.controller._show_frame('CreateForm')
 
     def _edit_current_contract(self):
         """ Raises UpdateForm with partially filled labels/entries. """
@@ -1191,7 +1176,7 @@ class PreviewForm(RecruitingFrame):
                                                  if
                                                  k not in ('ID', 'Департамент',
                                                            'UserID',
-                                                           'Должность',
+                                                           'Должность кандидата',
                                                            'ResponsibleUserID',
                                                            'StatusID',
                                                            'Комментарий',
@@ -1220,9 +1205,9 @@ class PreviewForm(RecruitingFrame):
         self.table.configure(yscrollcommand=scrolltable.set)
         scrolltable.pack(side=tk.RIGHT, fill=tk.Y)
 
-    def _open_report(self):
-        """ Open independent report. """
-        os.startfile(os.path.join(REPORT_PATH, 'Договора аренды.xlsb'))
+    # def _open_report(self):
+    #     """ Open independent report. """
+    #     os.startfile(os.path.join(REPORT_PATH, 'Договора аренды.xlsb'))
 
     def _raise_Toplevel(self, frame, title, width, height,
                         static_geometry=True, options=()):
@@ -1297,8 +1282,8 @@ class PreviewForm(RecruitingFrame):
                 newlevel = tk.Toplevel(self.parent)
                 newlevel.withdraw()
                 # newlevel.transient(self.parent)  # disable minimize/maximize buttons
-                newlevel.title('Информация по договору')
-                newlevel.iconbitmap('resources/clipboard.ico')
+                newlevel.title('Просмотр заявки на персонал')
+                newlevel.iconbitmap('resources/file.ico')
                 newlevel.bind('<Escape>', lambda e, w=newlevel: w.destroy())
                 DetailedPreview(newlevel, self, self.conn, self.userID,
                                 self.headings,
@@ -1307,7 +1292,7 @@ class PreviewForm(RecruitingFrame):
                 newlevel.resizable(width=False, height=False)
                 # width is set implicitly in DetailedPreview._newRow
                 # based on columnWidths values
-                self._center_popup_window(newlevel, 500, 400,
+                self._center_popup_window(newlevel, 700, 300,
                                           static_geometry=False)
                 newlevel.deiconify()
                 newlevel.focus()
@@ -1360,8 +1345,6 @@ class DetailedPreview(tk.Frame):
         self.parent = parent
         self.parentform = parentform
         self.conn = conn
-        # self.approveclass_bool = isinstance(self, ApproveConfirmation)
-        self.contractID, self.initiatorID = info[1:3]
         self.userID = userID
         self.rowtags = tags
         self.filename_preview = str()
@@ -1373,27 +1356,25 @@ class DetailedPreview(tk.Frame):
 
         # Add info to table_frame
         fonts = (('Arial', 9, 'bold'), ('Arial', 10))
-        # filelink = str()
         for row in zip(range(len(head)), zip(head, info)):
-            if row[1][0] not in ('№ п/п', 'UserID', 'Дата создания',
-                                 'ID Утверждающего', 'Утверждающий', 'Статус',
-                                 'Файл'):
-                if row[1][0] == 'Имя файла' and (row[1][1] != 'None'
-                                                 or row[1][1] is not None):
+            if row[1][0] not in ('№ п/п', 'UserID', 'ID',
+                                 'ResponsibleUserID', 'StatusID'):
+                if row[1][0] == 'Файл заявки' and (row[1][1] != 'None'
+                                                   or row[1][1] is not None):
                     self.filename_preview = row[1][1]
                 self._newRow(self.table_frame, fonts, *row)
 
-        self.appr_label = tk.Label(self.top, text='Адреса по договору',
-                                   padx=10, pady=5, font=('Arial', 10, 'bold'))
+        # self.appr_label = tk.Label(self.top, text='Адреса по договору',
+        #                            padx=10, pady=5, font=('Arial', 10, 'bold'))
 
         # Top Frame with list mvz
-        self.appr_cf = tk.Frame(self, name='appr_cf', padx=5)
-
-        # Add list of all mvz for current contract
-        fonts = (('Arial', 10), ('Arial', 10))
-        approvals = self.conn.get_additional_objects(self.contractID)
-        for rowNumber, row in enumerate(approvals):
-            self._newRow(self.appr_cf, fonts, rowNumber + 1, row)
+        # self.appr_cf = tk.Frame(self, name='appr_cf', padx=5)
+        #
+        # # Add list of all mvz for current contract
+        # fonts = (('Arial', 10), ('Arial', 10))
+        # approvals = self.conn.get_additional_objects(self.contractID)
+        # for rowNumber, row in enumerate(approvals):
+        #     self._newRow(self.appr_cf, fonts, rowNumber + 1, row)
 
         self._add_buttons()
         self._pack_frames()
@@ -1406,20 +1387,19 @@ class DetailedPreview(tk.Frame):
         # Bottom Frame with buttons
         self.bottom = tk.Frame(self, name='bottom')
         if self.filename_preview:
-            bt1 = ttk.Button(self.bottom, text="Просмотреть файл", width=20,
-                             command=self._open_file,
-                             style='ButtonGreen.TButton')
-            bt1.pack(side=tk.LEFT, padx=15, pady=10)
+            bt1 = ttk.Button(self.bottom, text="Требования", width=15,
+                             command=self._open_file)
+            bt1.pack(side=tk.LEFT, padx=5, pady=5)
 
         bt2 = ttk.Button(self.bottom, text="Закрыть", width=10,
                          command=self.parent.destroy)
-        bt2.pack(side=tk.RIGHT, padx=15, pady=10)
+        bt2.pack(side=tk.RIGHT, padx=5, pady=0)
 
         # show delete button for users
         if self.userID in (2, 6, 1):
-            bt3 = ttk.Button(self.bottom, text="Удалить договор", width=18,
+            bt3 = ttk.Button(self.bottom, text="Отменить заявку", width=18,
                              command=self._delete)
-            bt3.pack(side=tk.RIGHT, padx=15, pady=10)
+            bt3.pack(side=tk.RIGHT, padx=5, pady=0)
 
     def _delete(self):
         mboxname = 'Удаление договора'
@@ -1436,7 +1416,7 @@ class DetailedPreview(tk.Frame):
         """ Adds a new line to the table. """
 
         numberOfLines = []  # List to store number of lines needed
-        columnWidths = [23, 50]  # Width of the different columns in the table
+        columnWidths = [23, 70]  # Width of the different columns in the table
 
         # Find the length and the number of lines of each element and column
         for index, item in enumerate(info):
@@ -1451,7 +1431,7 @@ class DetailedPreview(tk.Frame):
 
         # Define labels (columns) for row
         def form_column(rowNumber, lineNumber, col_num, cell, fonts):
-            col = tk.Text(frame, bg='white', padx=3)
+            col = tk.Text(frame, bg='white', padx=10)
             col.insert(1.0, cell)
             col.grid(row=rowNumber, column=col_num + 1, sticky='news')
             col.configure(width=columnWidths[col_num],
@@ -1468,9 +1448,9 @@ class DetailedPreview(tk.Frame):
     def _pack_frames(self):
         self.top.pack(side=tk.TOP, fill=tk.X, expand=False)
         self.bottom.pack(side=tk.BOTTOM, fill=tk.X, expand=False)
-        self.appr_cf.pack(side=tk.TOP, fill=tk.X)
+        # self.appr_cf.pack(side=tk.TOP, fill=tk.X)
         self.table_frame.pack()
-        self.appr_label.pack(side=tk.LEFT, expand=False)
+        # self.appr_label.pack(side=tk.LEFT, expand=False)
         self.pack()
 
 

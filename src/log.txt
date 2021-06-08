@@ -1,0 +1,2 @@
+08-06-2021 08:37:13 'CreateForm' object has no attribute 'btn_text'
+08-06-2021 17:02:19 'CreateForm' object has no attribute 'file_label'
