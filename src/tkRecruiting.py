@@ -169,7 +169,7 @@ class RecruitingApp(tk.Tk):
         # geometry_storage {Framename:(width, height)}
         self._geometry = {'PreviewForm': (1200, 550),
                           'CreateForm': (480, 440),
-                          'UpdateForm': (850, 440)}
+                          'UpdateForm': (480, 440)}
         # Virtual event for creating request
         self.event_add("<<create>>", "<Control-S>", "<Control-s>",
                        "<Control-Ucircumflex>", "<Control-ucircumflex>",
@@ -247,35 +247,19 @@ class RecruitingApp(tk.Tk):
 
         self.geometry('{}x{}+{}+{}'.format(w, h, start_x, start_y))
 
-    def _fill_UpdateForm(self, Объект, **kwargs):
+    def _fill_UpdateForm(self, **kwargs):
         """ Control function to transfer data from Preview- to CreateForm. """
         id = kwargs['ID']
-
-        num_main_contract = kwargs['№ договора']
-        date_main_contract_start = kwargs['Дата договора (начало)']
-        date_main_contract_end = kwargs['Дата договора (конец)']
-        add_contract_num = kwargs['№ доп.согл.']
-        date_add_contract = kwargs['Дата доп.согл.']
-        date_add_contract_start = kwargs['Дата с']
-        date_add_contract_end = kwargs['Дата по']
-        square = kwargs['Площадь']
-        price1m2 = kwargs['Цена за 1м²']
-        cost = kwargs['Сумма без НДС']
-        contragent = kwargs['Арендодатель']
-        business = kwargs['Бизнес']
-        okpo = kwargs['ЕГРПОУ']
-        description = kwargs['Описание']
-        cost_extra = kwargs['Сумма экспл. без НДС']
-        filename = kwargs['Имя файла']
+        internalID = kwargs['Номер заявки']
+        officeName = kwargs['Офис']
+        departmentName = kwargs['Департамент']
+        initiatorName = kwargs['Инициатор']
+        plannedDate = kwargs['Плановая дата']
+        responsibleUser = kwargs['Ответственный от HR']
+        statusID = kwargs['StatusID']
         frame = self._frames['UpdateForm']
-        frame._fill_from_UpdateForm(Объект, id, num_main_contract,
-                                    date_main_contract_start,
-                                    date_main_contract_end, date_add_contract,
-                                    date_add_contract_end,
-                                    add_contract_num, date_add_contract_start,
-                                    square,
-                                    price1m2, cost_extra, cost, contragent,
-                                    business, okpo, description, filename)
+        frame._fill_from_UpdateForm(id, internalID, officeName, departmentName,
+                                    initiatorName, plannedDate, responsibleUser, statusID)
 
     def _onKeyRelease(*args):
         event = args[1]
@@ -308,7 +292,7 @@ class RecruitingApp(tk.Tk):
             if frame_name in ('PreviewForm'):
                 frame._resize_columns()
                 frame._refresh()
-                # Clear form in CreateFrom by autofill form
+                # Clear form in CreateFrom and UpdateForm by autofill form
                 self._frames['CreateForm']._clear()
                 self._frames['UpdateForm']._clear()
         finally:
@@ -356,15 +340,14 @@ class RecruitingFrame(tk.Frame):
 
 
 class CreateForm(RecruitingFrame):
-    def __init__(self, parent, controller, connection, user_info, office,
-                 responsible, **kwargs):
+    def __init__(self, parent, controller, connection, user_info, office, **kwargs):
         super().__init__(parent, controller, connection, user_info, office)
         self.upload_filename = str()
         # Top Frame with description and user name
         top = tk.Frame(self, name='top_cf', padx=5)
         self.main_label = tk.Label(top,
                                    text='Форма создания заявки на поиск персонала',
-                                   padx=10, pady=5, font=('Arial', 9, 'bold'))
+                                   padx=10, pady=5, font=('Calibri', 11, 'bold'))
         self._top_pack()
 
         # First Fill Frame
@@ -610,73 +593,68 @@ class CreateForm(RecruitingFrame):
         self.plannedClosingDateWidget.pack(side=tk.LEFT, padx=3)
 
 
-
     def _top_pack(self):
         self.main_label.pack(side=tk.TOP, expand=False, anchor=tk.NW)
 
     def _validate_request_creation(self, messagetitle):
         """ Check if all fields are filled properly. """
-        if not self.candidatePositionEntry.get():
-            messagebox.showerror(
-                messagetitle, 'Не указана должность вакансии'
-            )
-            return False
         if not self.upload_filename:
             messagebox.showerror(
                 messagetitle, 'Вы не загрузили файл требований'
             )
             return False
-
+        if not self.candidatePositionEntry.get():
+            messagebox.showerror(
+                messagetitle, 'Не указана должность вакансии'
+            )
+            return False
         return True
 
 
 class UpdateForm(RecruitingFrame):
     def __init__(self, parent, controller, connection, user_info, office,
-                 responsible, **kwargs):
+                 responsible_all, **kwargs):
         super().__init__(parent, controller, connection, user_info, office)
-        self.upload_filename = str()
-        # print(self.mvz)
+        self.responsibleID, self.responsible = zip(*[(0, 'Не назначен'), ] + responsible_all)
+        self.UserID = self.user_info.UserID
+        self.isSuperHR = self.user_info.isSuperHR
         # Top Frame with description and user name
         top = tk.Frame(self, name='top_cf', padx=5)
         self.main_label = tk.Label(top,
-                                   text='Форма редактирования данных по договору',
-                                   padx=10, font=('Arial', 8, 'bold'))
-        self.responsibleID, self.responsible = zip(*responsible)
-        self._add_user_label(top)
+                                   text='Управление заявкой на поиск персонала',
+                                   padx=10, font=('Calibri', 11, 'bold'))
+        # self._add_user_label(top)
         self._top_pack()
 
-        # First Fill Frame with (MVZ, business)
+        # First Fill Frame
         row1_cf = tk.Frame(self, name='row1_cf', padx=15)
-
-        self.office_label = tk.Label(row1_cf, text='Объект', padx=7)
-        self.office_current = tk.StringVar()
-        self.office_box = ttk.OptionMenu(row1_cf, self.office_current, '',
-                                         *self.office.keys(),
-                                         command=self._restraint_by_office)
-        self.office_box.config(width=40)
+        self.request_info_text = tk.StringVar()
+        self.request_info_label = tk.Label(row1_cf,
+                                           textvariable=self.request_info_text,
+                                           padx=7, justify=tk.LEFT, font=('Calibri', 10))
 
         self._row1_pack()
 
         # Second Fill Frame
         row2_cf = tk.Frame(self, name='row2_cf', padx=15)
-        self.responsible_label = tk.Label(row2_cf, text='Тип бизнеса', padx=7)
-        self.responsible_box = ttk.Combobox(row2_cf, width=20,
-                                            state='readonly')
-        self.responsible_box['values'] = self.responsible
-        self.responsible_box.configure(state="normal")
+        self.separator = ttk.Separator(row2_cf, orient='horizontal')
 
         self._row2_pack()
 
         # Third Fill Frame
         row3_cf = tk.Frame(self, name='row3_cf', padx=15)
-
-        self.num_main_contract = tk.Label(row3_cf, text='№ договора', padx=0)
-        self.num_main_contract_entry = tk.Entry(row3_cf, width=23)
+        self.responsible_label = tk.Label(row3_cf, text='Выбрать ответственного', padx=7)
+        self.responsible_box = ttk.Combobox(row3_cf, width=20,
+                                            state='readonly')
+        self.responsible_box['values'] = self.responsible
+        self.responsible_box.configure(state="normal")
 
         self._row3_pack()
 
         # Fourth Fill Frame
         row4_cf = tk.Frame(self, name='row4_cf', padx=15)
+        self.num_main_contract = tk.Label(row4_cf, text='№ договора', padx=0)
+        self.num_main_contract_entry = tk.Entry(row4_cf, width=23)
 
         self._row4_pack()
 
@@ -687,22 +665,17 @@ class UpdateForm(RecruitingFrame):
 
         # Six Fill Frame
         row6_cf = tk.Frame(self, name='row6_cf', padx=15)
-
-        self.file_label = tk.Label(row6_cf, text='Файл не выбран')
-        bt_upload = ttk.Button(row6_cf, text="Выбрать файл", width=20,
-                               command=self._file_opener,
-                               style='ButtonGreen.TButton')
-        bt_upload.pack(side=tk.RIGHT, padx=15, pady=0)
-
-        # Text Frame
-        text_cf = ttk.LabelFrame(self, text=' Комментарий к договору ',
-                                 name='text_cf')
-
-        self.customFont = tkFont.Font(family="Arial", size=10)
-        self.desc_text = tk.Text(text_cf,
-                                 font=self.customFont)  # input and output box
-        self.desc_text.configure(width=115)
-        self.desc_text.pack(in_=text_cf, expand=True)
+        self.attach_label = tk.Label(row6_cf,
+                                     text='Резюме согласованного кандидата',
+                                     padx=8)
+        self.upload_btn_text = tk.StringVar()
+        self.bt_upload = ttk.Button(row6_cf, textvariable=self.upload_btn_text,
+                               width=20,
+                               command=self._upload_cv,
+                               style='ButtonGreen.TButton',
+                                state=tk.NORMAL)
+        self.upload_btn_text.set("Выбрать файл")
+        self.bt_upload.pack(side=tk.RIGHT, padx=15, pady=0)
 
         self._row6_pack()
 
@@ -710,8 +683,6 @@ class UpdateForm(RecruitingFrame):
         bottom_cf = tk.Frame(self, name='bottom_cf')
 
         bt3 = ttk.Button(bottom_cf, text="Назад", width=10,
-                         # command=self._deselect_checked_mvz)
-                         # command=self.button_back(controller))
                          command=lambda: controller._show_frame('PreviewForm'))
         bt3.pack(side=tk.RIGHT, padx=15, pady=10)
 
@@ -721,7 +692,7 @@ class UpdateForm(RecruitingFrame):
         bt1.pack(side=tk.RIGHT, padx=15, pady=10)
 
         # Pack frames
-        top.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        top.pack(side=tk.TOP, fill=tk.BOTH)
         bottom_cf.pack(side=tk.BOTTOM, fill=tk.X)
         row1_cf.pack(side=tk.TOP, fill=tk.X, pady=5)
         row2_cf.pack(side=tk.TOP, fill=tk.X, pady=5)
@@ -729,59 +700,53 @@ class UpdateForm(RecruitingFrame):
         row4_cf.pack(side=tk.TOP, fill=tk.X, pady=5)
         row5_cf.pack(side=tk.TOP, fill=tk.X, pady=5)
         row6_cf.pack(side=tk.TOP, fill=tk.X, pady=5)
-        text_cf.pack(side=tk.TOP, fill=tk.X, expand=True, padx=15, pady=15)
 
-    def _file_opener(self):
+
+    def _upload_cv(self):
         filename = fd.askopenfilename()
         if filename:
-            copy2(filename, UPLOAD_PATH)
-            path = Path(filename)
+            # Rename file while it uploading
+            file = Path(filename).name
+            now = str(datetime.now())[:19]
+            now = now.replace(":", "_")
+            now = now.replace(" ", "_")
+            new_filename = file.replace(".", '_' + now + '.')
+            distPath = UPLOAD_PATH + "\\" + new_filename
+            copy(filename, distPath)
+            path = Path(distPath)
             self.upload_filename = path.name
-            self.file_label.config(text='Файл добавлен')
+            self.upload_btn_text.set("Файл добавлен")
 
     def _remove_upload_file(self):
         os.remove(UPLOAD_PATH + '\\' + self.upload_filename)
-        self.file_label.config(text='Файл не выбран')
 
-    def _multiply_cost_square(self):
-        square_get = float(self.square.get_float_form()
-                           if self.square_entry.get() else 0)
-        square_cost_get = float(self.square_cost.get_float_form()
-                                if self.square_cost_entry.get() else 0)
-        total_square_cost = square_get * square_cost_get
-        if total_square_cost:
-            self.sum_entry.delete(0, tk.END)
-            self.sum_entry.insert(0, total_square_cost)
 
     def _clear(self):
         self.responsible_box.configure(state="readonly")
-        self.num_main_contract_entry.configure(state="normal")
-        self.num_main_contract_entry.delete(0, tk.END)
-        self.num_main_contract_entry.delete(0, tk.END)
-        self.desc_text.delete("1.0", tk.END)
-        self.file_label.config(text='Файл не выбран')
         self.upload_filename = str()
 
-    def _fill_from_UpdateForm(self, office, id, num_main_contract,
-                              date_main_contract_start,
-                              date_main_contract_end, date_add_contract,
-                              date_add_contract_end,
-                              add_contract_num, date_add_contract_start, square,
-                              price1m2, cost_extra, cost, contragent,
-                              business, okpo, description, filename):
-        """ When button "Редактировать" from PreviewForm is activated,
+    def _fill_from_UpdateForm(self, id, internalID, officeName,
+                              departmentName, initiatorName, plannedDate, responsibleUser, statusID):
+        """ When button "Управление заявкой" from PreviewForm is activated,
         fill some fields taken from choosed in PreviewForm request.
         """
-        self.contract_id = id
-        self.office_current.set(office)
-        self.responsible_box.set(business)
-        self.num_main_contract_entry.delete(0, tk.END)
-        self.num_main_contract_entry.insert(0, num_main_contract)
-        self.desc_text.insert("1.0", description)
-        self.fill_filename = filename
-        if filename:
-            self.file_label.config(text='Файл добавлен')
-        self._multiply_cost_square()
+        self.request_id = id
+        self.responsible_box.set(responsibleUser)
+        if not self.isSuperHR:
+            self.responsible_box.configure(state="disabled")
+        self.request_info_text.set('Номер заявки: ' + internalID + '\n' +
+                                   'Офис : ' + officeName + '\n' +
+                                   'Подразделение: ' + departmentName
+                                   )
+        if statusID in (1,4):
+            self.bt_upload.config(state=tk.DISABLED)
+        elif statusID == 2:
+            self.bt_upload.config(state=tk.NORMAL)
+        elif statusID == 3:
+            self.bt_upload.config(state=tk.DISABLED)
+            self.upload_btn_text.set("Файл добавлен")
+
+
 
     def _convert_date(self, date, output=None):
         """ Take date and convert it into output format.
@@ -801,50 +766,21 @@ class UpdateForm(RecruitingFrame):
 
     def _update_request(self):
         messagetitle = 'Обновление договора'
-        sumtotal = self.sum_entry.get()
-        sum_extra_total = float(self.sum_extra_total.get_float_form()
-                                if self.sum_extra_entry.get() else 0)
-        square = float(self.square.get_float_form()
-                       if self.square_entry.get() else 0)
-        price_meter = float(self.square_cost.get_float_form()
-                            if self.square_cost_entry.get() else 0)
-        is_validated = self._validate_request_creation(messagetitle, sumtotal)
+        is_validated = self._validate_request_creation(messagetitle)
         if not is_validated:
             return
 
-        update_request = {'id': self.contract_id,
-                          'start_date': self._convert_date(
-                              self.date_start_entry.get()),
-                          'finish_date': self._convert_date(
-                              self.date_finish_entry.get()),
-                          'sum_extra_total': sum_extra_total,
-                          'sumtotal': sumtotal,
-                          'nds': self.nds.get(),
-                          'square': square,
-                          'contragent': self.contragent_entry.get().strip().replace(
-                              '\n', '') or None,
-                          'okpo': self.okpo_entry.get(),
-                          'num_main_contract': self.num_main_contract_entry.get(),
-                          'num_add_contract': self.num_add_contract_entry.get(),
-                          'date_main_contract_start': self._convert_date(
-                              self.date_main_contract_start.get()),
-                          'date_add_contract': self._convert_date(
-                              self.date_add_contract.get()),
-                          'text': self.desc_text.get("1.0", tk.END).strip(),
-                          'filename': self.fill_filename if self.fill_filename else self.upload_filename,
-                          'date_main_contract_end': self._convert_date(
-                              self.date_main_contract_end.get()),
-                          'price_meter': price_meter,
-                          'responsible': self.responsible_box.get(),
-                          'office_choice_list': ','.join(
-                              map(str, self.office_choice_list))
-
+        update_request = {'id': self.request_id,
+                          'modifiedUserID': self.UserID,
+                          'responsibleID': self.responsibleID[self.responsible_box.current()],
+                          'fileCV': self.upload_filename,
+                          'statusID': None
                           }
-        update_success = self.conn.update_request(userID=self.userID,
-                                                  **update_request)
+
+        update_success = self.conn.update_request(**update_request)
         if update_success == 1:
             messagebox.showinfo(
-                messagetitle, 'Договор обновлен'
+                messagetitle, 'Заявка обновлена'
             )
             self._clear()
             self.controller._show_frame('PreviewForm')
@@ -853,7 +789,6 @@ class UpdateForm(RecruitingFrame):
             messagebox.showerror(
                 messagetitle, 'Произошла ошибка при обновлении договора'
             )
-
             # МВЗ, Договор, Арендодатель, ЕГРПОУ, Описание
 
     def _convert_str_date(self, date):
@@ -872,71 +807,34 @@ class UpdateForm(RecruitingFrame):
         self.mvz_sap = self.get_mvzSAP(self.mvz_current.get()) or ''
 
     def _row1_pack(self):
-        self.office_label.pack(side=tk.LEFT)
-        self.office_box.pack(side=tk.LEFT, padx=10)
+        self.request_info_label.pack(side=tk.LEFT, anchor=tk.W)
 
     def _row2_pack(self):
+        self.separator.pack(fill='x')
+
+    def _row3_pack(self):
         self.responsible_label.pack(side=tk.LEFT)
         self.responsible_box.pack(side=tk.LEFT, padx=17)
 
-    def _row3_pack(self):
+    def _row4_pack(self):
         self.num_main_contract.pack(side=tk.LEFT, padx=7)
         self.num_main_contract_entry.pack(side=tk.LEFT, padx=19)
-
-    def _row4_pack(self):
-        pass
 
     def _row5_pack(self):
         pass
 
     def _row6_pack(self):
-        self.file_label.pack(side=tk.RIGHT, padx=0)
+        self.attach_label.pack(side=tk.LEFT, padx=0)
 
 
     def _top_pack(self):
         self.main_label.pack(side=tk.TOP, expand=False, anchor=tk.NW)
 
-    def _validate_request_creation(self, messagetitle, sumtotal):
+    def _validate_request_creation(self, messagetitle):
         """ Check if all fields are filled properly. """
-        if not self.office_current.get():
-            messagebox.showerror(
-                messagetitle, 'Не выбран объект'
-            )
-            return False
-
-        if not self.office_choice_list:
-            messagebox.showerror(
-                messagetitle, 'Не выбраны адреса к договору'
-            )
-            return False
         if not self.responsible_box.get():
             messagebox.showerror(
                 messagetitle, 'Не выбран тип бизнеса'
-            )
-            return False
-        if not self.num_main_contract_entry.get():
-            messagebox.showerror(
-                messagetitle, 'Не указан номер основного договора'
-            )
-            return False
-        if not self.num_add_contract_entry.get():
-            messagebox.showerror(
-                messagetitle, 'Не указан номер дополнительного соглашения'
-            )
-            return False
-        if not self.contragent_entry.get():
-            messagebox.showerror(
-                messagetitle, 'Не указан арендодатель'
-            )
-            return False
-        if ast.literal_eval(self.square_entry.get()[0]) == 0:
-            messagebox.showerror(
-                messagetitle, 'Не указана площадь аренды'
-            )
-            return False
-        if ast.literal_eval(self.square_cost_entry.get()[0]) == 0:
-            messagebox.showerror(
-                messagetitle, 'Не указана стоимость за 1 кв.м.'
             )
             return False
         return True
@@ -950,7 +848,7 @@ class PreviewForm(RecruitingFrame):
         self.statusID, self.status_list = zip(*[(None, 'Все'), ] + status_list)
         self.responsibleID, self.responsible = zip(
             *[(None, 'Все'), ] + responsible)
-        # print(self.statusID, self.status_list)
+        self.isHR = self.user_info.isHR
 
         # List of functions to get payments
         # determines what payments will be shown when refreshing
@@ -1033,7 +931,7 @@ class PreviewForm(RecruitingFrame):
                          'Плановая дата': 90,
                          'Должность кандидата': 0, 'ResponsibleUserID': 0,
                          'Ответственный от HR': 120,
-                         'StatusID': 0, 'Тип заявки': 50, 'Статус': 70,
+                         'StatusID': 0, 'Тип заявки': 50, 'Статус': 80,
                          'Комментарий': 0,
                          'Файл заявки': 0, 'Файл резюме': 0
                          }
@@ -1061,15 +959,10 @@ class PreviewForm(RecruitingFrame):
                                  'CreateForm'))
             bt1.pack(side=tk.LEFT, padx=10, pady=10)
 
-            bt2 = ttk.Button(bottom_cf, text="Назначить",
-                             width=20,
-                             command=self._edit_current_contract)
-            bt2.pack(side=tk.LEFT, padx=10, pady=10)
-
-            if self.userID in (2, 6, 1):
-                bt3 = ttk.Button(bottom_cf, text="Редактировать",
-                                 width=20,
-                                 command=self._edit_current_contract)
+            if self.isHR:
+                bt3 = ttk.Button(bottom_cf, text="Управление заявкой",
+                                 width=30,
+                                 command=self._edit_current_request)
                 bt3.pack(side=tk.LEFT, padx=10, pady=10)
 
         bt6 = ttk.Button(bottom_cf, text="Выход", width=10,
@@ -1119,7 +1012,7 @@ class PreviewForm(RecruitingFrame):
         self.responsible_box.set('Все')
         self.status_box.set('Все')
 
-    def _edit_current_contract(self):
+    def _edit_current_request(self):
         """ Raises UpdateForm with partially filled labels/entries. """
         curRow = self.table.focus()
 
@@ -1127,9 +1020,6 @@ class PreviewForm(RecruitingFrame):
             # extract info to be putted in CreateForm
             to_fill = dict(zip(self.table["columns"],
                                self.table.item(curRow).get('values')))
-            # print(to_fill)
-            # current_contract_info = self.conn.get_current_contract(to_fill.get('ID'))
-            objects = self.conn.get_additional_objects(to_fill.get('ID'))
             self.controller._fill_UpdateForm(**to_fill)
             self.controller._show_frame('UpdateForm')
 
@@ -1194,9 +1084,10 @@ class PreviewForm(RecruitingFrame):
                 self.table.heading(head, text=head, anchor=tk.CENTER)
                 self.table.column(head, width=50 * len(head), anchor=tk.CENTER)
 
-        for tag, bg in zip(self.status_list[1:6], (
-                '#FFF8DC', '#9ae59a', '#9ae59a', '#9ae59a', '#C0C0C0')):
-            self.table.tag_configure(tag, background=bg)
+        for tag, bg, color in zip(self.status_list[1:6], (
+                '#FFFFCC', '#66CCCC', '#99CC99', '#669966', '#CCCCCC'), (
+                '#000000', '#000000', '#000000','#000000', '#000000')):
+            self.table.tag_configure(tag, background=bg, foreground=color)
 
         self.table.bind('<Double-1>', self._show_detail)
         self.table.bind('<Button-1>', self._sort, True)
@@ -1205,9 +1096,6 @@ class PreviewForm(RecruitingFrame):
         self.table.configure(yscrollcommand=scrolltable.set)
         scrolltable.pack(side=tk.RIGHT, fill=tk.Y)
 
-    # def _open_report(self):
-    #     """ Open independent report. """
-    #     os.startfile(os.path.join(REPORT_PATH, 'Договора аренды.xlsb'))
 
     def _raise_Toplevel(self, frame, title, width, height,
                         static_geometry=True, options=()):
@@ -1347,7 +1235,11 @@ class DetailedPreview(tk.Frame):
         self.conn = conn
         self.userID = userID
         self.rowtags = tags
+        self.initiatorID = info[3]
+        self.ID = info[1]
+        self.statusID = info[12]
         self.filename_preview = str()
+        self.cv_preview = str()
         # Top Frame with description and user name
         self.top = tk.Frame(self, name='top_cf', padx=5, pady=5)
 
@@ -1359,9 +1251,12 @@ class DetailedPreview(tk.Frame):
         for row in zip(range(len(head)), zip(head, info)):
             if row[1][0] not in ('№ п/п', 'UserID', 'ID',
                                  'ResponsibleUserID', 'StatusID'):
-                if row[1][0] == 'Файл заявки' and (row[1][1] != 'None'
+                if row[1][0] == 'Файл заявки' and (row[1][1] != '-'
                                                    or row[1][1] is not None):
                     self.filename_preview = row[1][1]
+                if row[1][0] == 'Файл резюме' and (row[1][1] != '-'
+                                                   or row[1][1] is not None):
+                    self.cv_preview = row[1][1]
                 self._newRow(self.table_frame, fonts, *row)
 
         # self.appr_label = tk.Label(self.top, text='Адреса по договору',
@@ -1383,6 +1278,10 @@ class DetailedPreview(tk.Frame):
         pathToFile = UPLOAD_PATH + "\\" + self.filename_preview
         return os.startfile(pathToFile)
 
+    def _open_cv(self):
+        pathToFile = UPLOAD_PATH + "\\" + self.cv_preview
+        return os.startfile(pathToFile)
+
     def _add_buttons(self):
         # Bottom Frame with buttons
         self.bottom = tk.Frame(self, name='bottom')
@@ -1390,25 +1289,27 @@ class DetailedPreview(tk.Frame):
             bt1 = ttk.Button(self.bottom, text="Требования", width=15,
                              command=self._open_file)
             bt1.pack(side=tk.LEFT, padx=5, pady=5)
-
+        if self.cv_preview and self.cv_preview != '-':
+            bt4 = ttk.Button(self.bottom, text="Резюме", width=15,
+                             command=self._open_cv)
+            bt4.pack(side=tk.LEFT, padx=5, pady=5)
         bt2 = ttk.Button(self.bottom, text="Закрыть", width=10,
                          command=self.parent.destroy)
         bt2.pack(side=tk.RIGHT, padx=5, pady=0)
 
-        # show delete button for users
-        if self.userID in (2, 6, 1):
+        # show cancel button for initiator users
+        if self.userID == self.initiatorID and self.statusID != 5:
             bt3 = ttk.Button(self.bottom, text="Отменить заявку", width=18,
-                             command=self._delete)
+                             command=self._delete, style='ButtonRed.TButton')
             bt3.pack(side=tk.RIGHT, padx=5, pady=0)
 
     def _delete(self):
-        mboxname = 'Удаление договора'
+        mboxname = 'Отмена заявки на поиск персонала'
         confirmed = messagebox.askyesno(title=mboxname,
-                                        message='Вы уверены, что хотите удалить '
-                                                'этот договор?')
+                                        message='Вы уверены, что хотите отменить эту заявку?')
         if confirmed:
-            self.conn.delete_contract(self.contractID)
-            messagebox.showinfo(mboxname, 'Договор удален')
+            self.conn.update_request(self.ID, self.userID, None, None, 5)
+            messagebox.showinfo(mboxname, 'Заявка отменена')
             self.parentform._refresh()
             self.parent.destroy()
 
@@ -1416,7 +1317,7 @@ class DetailedPreview(tk.Frame):
         """ Adds a new line to the table. """
 
         numberOfLines = []  # List to store number of lines needed
-        columnWidths = [23, 70]  # Width of the different columns in the table
+        columnWidths = [23, 60]  # Width of the different columns in the table
 
         # Find the length and the number of lines of each element and column
         for index, item in enumerate(info):

@@ -84,69 +84,27 @@ class DBConnect(object):
             return
 
     @monitor_network_state
-    def update_request(self, userID, id, mvz, start_date, finish_date,
-                       sum_extra_total,
-                       sumtotal, nds, square, contragent, okpo,
-                       num_main_contract,
-                       num_add_contract, date_main_contract_start,
-                       date_add_contract, text, filename,
-                       date_main_contract_end,
-                       price_meter, type_business, mvz_choice_list):
-        """ Executes procedure that creates new request.
+    def update_request(self, id, modifiedUserID, responsibleID=None, fileCV=None, statusID=None):
+        """ Executes procedure that updates request.
         """
         query = '''
-            exec contracts.update_contract @UserID = ?,
-                                        @ID = ?,
-                                        @MVZ = ?,
-                                        @DateStart = ?,
-                                        @DateFinish = ?,
-                                        @SumExtraNoTax = ?,
-                                        @SumNoTax = ?,
-                                        @Tax = ?,
-                                        @Square = ?,
-                                        @Contragent = ?,
-                                        @OKPO = ?,
-                                        @NumMain = ?,
-                                        @NumAdditional = ?,
-                                        @DateMain = ?,
-                                        @DateAdditional = ?,
-                                        @Description = ?,
-                                        @Filename = ?,
-                                        @DateMainEnd = ?,
-                                        @PriceSquareMeter = ?,
-                                        @TypeBusiness = ?,
-                                        @ObjectIDLIst = ?
+            exec recruiting.update_request  @ID = ?,
+                                            @modifiedID = ?,
+                                            @responsibleID = ?,
+                                            @fileCV = ?,
+                                            @statusID = ?
                 '''
         try:
-            self.__cursor.execute(query, userID, id, mvz, start_date, finish_date,
-                                  sum_extra_total, sumtotal, nds, square,
-                                  contragent, okpo, num_main_contract,
-                                  num_add_contract, date_main_contract_start,
-                                  date_add_contract, text, filename,
-                                  date_main_contract_end, price_meter,
-                                  type_business, mvz_choice_list)
+            self.__cursor.execute(query, id, modifiedUserID, responsibleID, fileCV, statusID)
             request_allowed = self.__cursor.fetchone()[0]
             self.__db.commit()
             return request_allowed
         except pyodbc.ProgrammingError:
             return
 
-
-    @monitor_network_state
-    def get_additional_objects(self, ContractID):
-        """ Returns information about additionals MVZ for object's contract.
-        """
-        query = '''
-             exec contracts.get_additional_objects @ContractID = ?
-             '''
-
-        self.__cursor.execute(query, ContractID)
-        return self.__cursor.fetchall()
-
-
     @monitor_network_state
     def get_offices(self):
-        """ Returns list of available MVZ for current user.
+        """ Returns list of available offices.
         """
         query = '''
         exec recruiting.get_offices
@@ -156,10 +114,21 @@ class DBConnect(object):
 
     @monitor_network_state
     def get_responsible(self):
-        """ Returns list of available MVZ for current user.
+        """ Returns list of active responsible users vacancy's list.
         """
         query = '''
-        exec recruiting.get_responsible
+        exec recruiting.get_responsible 0
+        '''
+        self.__cursor.execute(query)
+        return self.__cursor.fetchall()
+
+
+    @monitor_network_state
+    def get_all_responsible(self):
+        """ Returns list of available responsible HR users.
+        """
+        query = '''
+        exec recruiting.get_responsible 1
         '''
         self.__cursor.execute(query)
         return self.__cursor.fetchall()

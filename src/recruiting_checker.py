@@ -59,7 +59,7 @@ def check_updates_and_run_app():
         path = os.path.join(SOURCE, v)
         for data in os.walk(path):
             update_files(path, *data)
-    # Update version in contracts.inf
+    # Update version in recruiting.inf
     if new_versions:
         with open('recruiting.inf', 'w') as f:
             f.write(new_versions[0])
@@ -76,9 +76,9 @@ def main():
                         exception_handlers=exception_handlers)
     root.overrideredirect(True)
 
-    logo = PhotoImage(file='resources/file.png')
+    logo = PhotoImage(file='resources/file-128.png')
     logo_label = Label(root, image=logo)
-    logo_label.pack(side='top', pady=100)
+    logo_label.pack(side='top', pady=80)
 
     copyright_label = Label(root, text='© 2021 Офис прогнозирования \n Департамент мастер-данных и отчетности')
     copyright_label.pack(side='bottom', pady=15)
@@ -87,7 +87,7 @@ def main():
                   text='Выполняется поиск обновлений и запуск приложения...')
     label.pack(expand='yes')
 
-    root.after(500, root.task)
+    root.after(300, root.task)
     root.mainloop()
 
 

@@ -80,7 +80,7 @@ def main():
     try:
         with conn as sql:
             UserLogin = getpass.getuser()
-            # UserLogin = 'o.fortunatova'
+            # UserLogin = 'o.liubko'
             access_permitted = sql.get_user_info(UserLogin)
             if not access_permitted:
                 tkr.AccessError()
@@ -100,6 +100,7 @@ def main():
                     'user_info': user_info,
                     'office': sql.get_offices(),
                     'responsible': sql.get_responsible(),
+                    'responsible_all': sql.get_all_responsible(),
                     'status_list': sql.get_status_list()
                     }
             for k, v in refs.items():
