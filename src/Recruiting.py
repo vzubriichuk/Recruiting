@@ -81,6 +81,9 @@ def main():
         with conn as sql:
             UserLogin = getpass.getuser()
             # UserLogin = 'o.liubko'
+            # UserLogin = 'o.fortunatova'
+            # UserLogin = 'a.figol'
+            # UserLogin = 'm.tipukhov'
             access_permitted = sql.get_user_info(UserLogin)
             if not access_permitted:
                 tkr.AccessError()
@@ -88,8 +91,8 @@ def main():
 
             UserInfo = namedtuple('UserInfo',
                                   ['UserID', 'ShortUserName', 'isAccess',
-                                   'isSuperUser', 'isHR', 'isSuperHR',
-                                   'OfficeName', 'DepartmentName', 'Position']
+                                   'isSuperUser', 'isHR', 'isSuperHR', 'officeID',
+                                   'OfficeName', 'departmentID', 'DepartmentName', 'Position']
                                   )
 
             # load references

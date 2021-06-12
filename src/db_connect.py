@@ -88,7 +88,7 @@ class DBConnect(object):
         """ Executes procedure that updates request.
         """
         query = '''
-            exec recruiting.update_request  @ID = ?,
+            exec recruiting.update_vacancy  @ID = ?,
                                             @modifiedID = ?,
                                             @responsibleID = ?,
                                             @fileCV = ?,
@@ -134,15 +134,21 @@ class DBConnect(object):
         return self.__cursor.fetchall()
 
     @monitor_network_state
-    def get_vacancies_list(self, statusID=None, officeID=None, responsibleID=None):
+    def get_vacancies_list(self, statusID=None, officeID=None, responsibleID=None,
+                           userOfficeID=None, userDepartmentID=None, isHR=None, UserID=None):
         """ Get list contracts with filters.
         """
         query = '''
            exec recruiting.get_vacancies_list @StatusID = ?,
                                               @OfficeID = ?,
-                                              @ResponsibleUserID = ?
+                                              @ResponsibleUserID = ?,
+                                              @userOfficeID = ?,
+                                              @userDepartmentID = ?,
+                                              @isHR = ?,
+                                              @UserID = ?
            '''
-        self.__cursor.execute(query, statusID, officeID, responsibleID)
+        self.__cursor.execute(query, statusID, officeID, responsibleID, userOfficeID,
+                              userDepartmentID, isHR, UserID)
         vacancies = self.__cursor.fetchall()
         self.__db.commit()
         return vacancies
