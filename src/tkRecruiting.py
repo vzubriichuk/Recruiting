@@ -1400,7 +1400,7 @@ class AboutFrame(tk.Frame):
 
         self.top = ttk.LabelFrame(self, name='top_af')
 
-        logo = tk.PhotoImage(file='resources/paper.png')
+        logo = tk.PhotoImage(file='resources/file.png')
         self.logo_label = tk.Label(self.top, image=logo)
         self.logo_label.image = logo  # keep a reference to avoid gc!
 
@@ -1413,8 +1413,8 @@ class AboutFrame(tk.Frame):
             os.startfile(path)
 
         self.copyright_text.insert(tk.INSERT,
-                                   'Платформа для учёта договоров аренды \n'
-                                   '(версия ' + __version__ + ')\n')
+                                   'Платформа для создания заявок на поиск  \n'
+                                   'персонала (версия ' + __version__ + ')\n')
         self.copyright_text.insert(tk.INSERT, "\n")
 
         def link_license():
@@ -1422,8 +1422,8 @@ class AboutFrame(tk.Frame):
             os.startfile(path)
 
         self.copyright_text.insert(tk.INSERT,
-                                   'Copyright © 2020 Департамент аналитики\n'
-                                   'Офис контролинга логистики\n')
+                                   'Copyright © 2021 Офис прогнозирования\n'
+                                   'Департамент мастер-данных и отчетности\n')
         self.copyright_text.insert(tk.INSERT, 'MIT License',
                                    hyperlink.add(link_license))
 
