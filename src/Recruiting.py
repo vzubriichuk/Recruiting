@@ -97,8 +97,6 @@ def main():
 
             # load references
             user_info = UserInfo(*access_permitted)
-            # Restriction: users in approvals_for_first_stage
-            # should have different names to be distinguished
             refs = {'connection': sql,
                     'user_info': user_info,
                     'office': sql.get_offices(),

@@ -10,7 +10,6 @@ WDIR = os.path.join(TARGET, 'Recruiting')
 TARGETFILE = os.path.join(WDIR, 'recruiting_checker.exe')
 ICONFILE = os.path.join(WDIR, 'resources\\file.ico')
 
-print(TARGETFILE)
 
 class SuccessMsg(Tk):
     """ Raise an error when user doesn't have permission to work with app.

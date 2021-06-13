@@ -64,7 +64,7 @@ def check_updates_and_run_app():
         with open('recruiting.inf', 'w') as f:
             f.write(new_versions[0])
     # Run main executable
-    os.startfile("recruiting.exe")
+    os.startfile("Recruiting.exe")
     sleep(5)
 
 

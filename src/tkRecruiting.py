@@ -169,7 +169,7 @@ class RecruitingApp(tk.Tk):
         # geometry_storage {Framename:(width, height)}
         self._geometry = {'PreviewForm': (1200, 550),
                           'CreateForm': (480, 440),
-                          'UpdateForm': (480, 340)}
+                          'UpdateForm': (480, 300)}
         # Virtual event for creating request
         self.event_add("<<create>>", "<Control-S>", "<Control-s>",
                        "<Control-Ucircumflex>", "<Control-ucircumflex>",
@@ -785,14 +785,13 @@ class UpdateForm(RecruitingFrame):
         if not is_validated:
             return
 
-        update_request = {'id': self.request_id,
+        update_vacancy = {'id': self.request_id,
                           'modifiedUserID': self.UserID,
                           'responsibleID': self.responsibleID[self.responsible_box.current()],
                           'fileCV': self.upload_filename,
                           'statusID': None or self.customStatusID[self.status_box.current()]
-                          # 'finally_statusID': self.customStatusID[self.status_box.current()]
                           }
-        update_success = self.conn.update_request(**update_request)
+        update_success = self.conn.update_request(**update_vacancy)
         if update_success == 1:
             messagebox.showinfo(
                 messagetitle, 'Заявка обновлена'
@@ -980,7 +979,7 @@ class PreviewForm(RecruitingFrame):
                                  'CreateForm'))
             bt1.pack(side=tk.LEFT, padx=10, pady=10)
 
-            if self.isHR:
+            if self.isHR or self.UserID == 1:
                 bt3 = ttk.Button(bottom_cf, text="Управление заявкой",
                                  width=30,
                                  command=self._edit_current_request)
@@ -1123,7 +1122,7 @@ class PreviewForm(RecruitingFrame):
                 self.table.column(head, width=50 * len(head), anchor=tk.CENTER)
 
         for tag, bg, color in zip(self.status_list[1:6], (
-                '#FFFFCC', '#66CCCC', '#99CC99', '#669966', '#CCCCCC'), (
+                '#FFFFCC', '#bbded6', '#ffb6b9', '#8DB87C', '#CCCCCC'), (
                 '#000000', '#000000', '#000000','#000000', '#000000')):
             self.table.tag_configure(tag, background=bg, foreground=color)
 
