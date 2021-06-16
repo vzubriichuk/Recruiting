@@ -81,9 +81,12 @@ def main():
         with conn as sql:
             UserLogin = getpass.getuser()
             # UserLogin = 'o.liubko'
+            # UserLogin = 'v.kozik'
             # UserLogin = 'o.fortunatova'
             # UserLogin = 'a.figol'
             # UserLogin = 'm.tipukhov'
+            # UserLogin = 'p.protsenko'
+            # UserLogin = 'ma.pashchenko'
             access_permitted = sql.get_user_info(UserLogin)
             if not access_permitted:
                 tkr.AccessError()

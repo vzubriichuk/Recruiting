@@ -253,12 +253,13 @@ class RecruitingApp(tk.Tk):
         internalID = kwargs['Номер заявки']
         officeName = kwargs['Офис']
         departmentName = kwargs['Департамент']
-        responsibleUser = kwargs['Ответственный от HR']
+        responsibleUser = kwargs['Ответственный']
         statusID = kwargs['StatusID']
         fileCV = kwargs['Файл резюме']
+        startWork = kwargs['Дата выхода']
         frame = self._frames['UpdateForm']
         frame._fill_from_UpdateForm(id, internalID, officeName, departmentName,
-                                    responsibleUser, statusID, fileCV)
+                                    responsibleUser, statusID, fileCV, startWork)
 
     def _onKeyRelease(*args):
         event = args[1]
@@ -339,14 +340,16 @@ class RecruitingFrame(tk.Frame):
 
 
 class CreateForm(RecruitingFrame):
-    def __init__(self, parent, controller, connection, user_info, office, **kwargs):
+    def __init__(self, parent, controller, connection, user_info, office,
+                 **kwargs):
         super().__init__(parent, controller, connection, user_info, office)
         self.uploaded_filename = str()
         # Top Frame with description and user name
         top = tk.Frame(self, name='top_cf', padx=5)
         self.main_label = tk.Label(top,
                                    text='Форма создания заявки на поиск персонала',
-                                   padx=10, pady=5, font=('Calibri', 11, 'bold'))
+                                   padx=10, pady=5,
+                                   font=('Calibri', 11, 'bold'))
         self._top_pack()
 
         # First Fill Frame
@@ -369,28 +372,24 @@ class CreateForm(RecruitingFrame):
         row2_cf = tk.Frame(self, name='row2_cf', padx=10)
         self.separator = ttk.Separator(row2_cf, orient='horizontal')
 
-
-
         self._row2_pack()
 
         # Third Fill Frame
         row3_cf = tk.Frame(self, name='row3_cf', padx=10)
         self.requirements_label = tk.Label(row3_cf,
-                                      text='1. Откройте и заполните файл требований:',
-                                      padx=8)
+                                           text='1. Откройте и заполните файл требований:',
+                                           padx=8)
         bt_open_file = ttk.Button(row3_cf, text="Открыть", width=20,
                                   command=self.open_file_requirements)
         bt_open_file.pack(side=tk.RIGHT, padx=15, pady=0)
-
-
 
         self._row3_pack()
 
         # Fourth Fill Frame
         row4_cf = tk.Frame(self, name='row4_cf', padx=10)
         self.attach_label = tk.Label(row4_cf,
-                                   text='2. Прикрепите файл требований:',
-                                   padx=8)
+                                     text='2. Прикрепите файл требований:',
+                                     padx=8)
         self.upload_btn_text = tk.StringVar()
         bt_upload = ttk.Button(row4_cf, textvariable=self.upload_btn_text,
                                width=20,
@@ -416,14 +415,13 @@ class CreateForm(RecruitingFrame):
                                                 text='Плановая дата закрытия заявки:',
                                                 padx=7)
         self.plannedClosingDate = tk.StringVar()
-        self.plannedClosingDateWidget = DateEntry(row6_cf, width=16,
-                                                  state='readonly',
-                                                  textvariable=self.plannedClosingDate,
-                                                  font=('Arial', 9),
-                                                  selectmode='day',
-                                                  borderwidth=2,
-                                                  locale='ru_RU')
-
+        self.plannedClosingDateEntry = DateEntry(row6_cf, width=16,
+                                                 state='readonly',
+                                                 textvariable=self.plannedClosingDate,
+                                                 font=('Arial', 9),
+                                                 selectmode='day',
+                                                 borderwidth=2,
+                                                 locale='ru_RU')
 
         # Text Frame
         text_cf = ttk.LabelFrame(self, text=' Комментарий к заявке ',
@@ -445,7 +443,8 @@ class CreateForm(RecruitingFrame):
         bt3.pack(side=tk.RIGHT, padx=15, pady=10)
 
         bt2 = ttk.Button(bottom_cf, text="Очистить", width=10,
-                         command=lambda: self._clear(1), style='ButtonRed.TButton')
+                         command=lambda: self._clear(1),
+                         style='ButtonRed.TButton')
         bt2.pack(side=tk.RIGHT, padx=0, pady=0)
 
         bt1 = ttk.Button(bottom_cf, text="Создать заявку", width=15,
@@ -491,7 +490,7 @@ class CreateForm(RecruitingFrame):
         self.desc_text.delete("1.0", tk.END)
         self.upload_btn_text.set("Выбрать файл")
         self.upload_filename = str()
-        self.plannedClosingDateWidget.set_date(datetime.now())
+        self.plannedClosingDateEntry.set_date(datetime.now())
         if self.uploaded_filename and param == 1:
             self._remove_uploaded_file()
 
@@ -544,7 +543,7 @@ class CreateForm(RecruitingFrame):
         request = {'userID': self.userID,
                    'positionName': self.candidatePositionEntry.get(),
                    'plannedDate': self._convert_date(
-                       self.plannedClosingDateWidget.get()),
+                       self.plannedClosingDateEntry.get()),
                    'fileRequirements': self.uploaded_filename,
                    'commentText': self.desc_text.get("1.0", tk.END).strip()
 
@@ -588,7 +587,7 @@ class CreateForm(RecruitingFrame):
 
     def _row6_pack(self):
         self.plannedClosingDateLabel.pack(side=tk.LEFT)
-        self.plannedClosingDateWidget.pack(side=tk.LEFT, padx=3)
+        self.plannedClosingDateEntry.pack(side=tk.LEFT, padx=3)
 
     def _top_pack(self):
         self.main_label.pack(side=tk.TOP, expand=False, anchor=tk.NW)
@@ -612,17 +611,20 @@ class UpdateForm(RecruitingFrame):
     def __init__(self, parent, controller, connection, user_info, office,
                  responsible_all, **kwargs):
         super().__init__(parent, controller, connection, user_info, office)
-        self.responsibleID, self.responsible = zip(*[(0, 'Не назначен'), ] + responsible_all)
+        self.responsibleID, self.responsible = zip(
+            *[(0, 'Не назначен'), ] + responsible_all)
         self.customStatusID, self.customStatusName = zip(*[(0, 'Не выбрано'),
-                                                           (4, 'Верифицировать'),
-                                                           (2, 'Вернуть в работу')])
+                                                           (
+                                                           4, 'Верифицировать'),
+                                                           (2,
+                                                            'Вернуть в работу')])
         self.UserID = self.user_info.UserID
         self.isSuperHR = self.user_info.isSuperHR
         self.filenameCV = str()
         # Top Frame with description and user name
         top = tk.Frame(self, name='top_cf', padx=5)
         self.main_label = tk.Label(top,
-                                   text='Управление заявкой на поиск персонала',
+                                   text='Форма управления заявкой',
                                    padx=10, font=('Calibri', 11, 'bold'))
         self._top_pack()
 
@@ -631,7 +633,8 @@ class UpdateForm(RecruitingFrame):
         self.request_info_text = tk.StringVar()
         self.request_info_label = tk.Label(row1_cf,
                                            textvariable=self.request_info_text,
-                                           padx=7, justify=tk.LEFT, font=('Calibri', 10))
+                                           padx=7, justify=tk.LEFT,
+                                           font=('Calibri', 10))
 
         self._row1_pack()
 
@@ -643,11 +646,12 @@ class UpdateForm(RecruitingFrame):
 
         # Third Fill Frame
         row3_cf = tk.Frame(self, name='row3_cf', padx=15)
-        self.responsible_label = tk.Label(row3_cf, text='Выбрать ответственного:', padx=7)
+        self.responsible_label = tk.Label(row3_cf,
+                                          text='Выбрать ответственного:',
+                                          padx=7)
         self.responsible_box = ttk.Combobox(row3_cf, width=20,
                                             state='readonly')
         self.responsible_box['values'] = self.responsible
-
 
         self._row3_pack()
 
@@ -669,19 +673,28 @@ class UpdateForm(RecruitingFrame):
 
         # Fifth Fill Frame
         row5_cf = tk.Frame(self, name='row5_cf', padx=15)
-        self.status_label = tk.Label(row5_cf,
-                                          text='Верифицировать или вернуть в работу:',
-                                          padx=7)
-        self.status_box = ttk.Combobox(row5_cf, width=20,
-                                            state='readonly')
-        self.status_box['values'] = self.customStatusName
-
+        self.plannedDateStartWorklabel = tk.Label(row5_cf,
+                                                  text='Ожидаемая дата выхода на работу:',
+                                                  padx=8)
+        self.plannedDateStartWork = tk.StringVar()
+        self.plannedDateStartWorkEntry = DateEntry(row5_cf, width=17,
+                                                   state='readonly',
+                                                   textvariable=self.plannedDateStartWork,
+                                                   font=('Arial', 9),
+                                                   selectmode='day',
+                                                   borderwidth=2,
+                                                   locale='ru_RU')
 
         self._row5_pack()
 
         # Six Fill Frame
         row6_cf = tk.Frame(self, name='row6_cf', padx=15)
-
+        self.status_label = tk.Label(row6_cf,
+                                     text='Верифицировать или вернуть в работу:',
+                                     padx=7)
+        self.status_box = ttk.Combobox(row6_cf, width=20,
+                                       state='readonly')
+        self.status_box['values'] = self.customStatusName
 
         self._row6_pack()
 
@@ -692,10 +705,10 @@ class UpdateForm(RecruitingFrame):
                          command=lambda: controller._show_frame('PreviewForm'))
         bt3.pack(side=tk.RIGHT, padx=15, pady=10)
 
-        bt1 = ttk.Button(bottom_cf, text="Обновить", width=10,
-                         command=self._update_request,
+        bt1 = ttk.Button(bottom_cf, text="Сохранить", width=15,
+                         command=self._update_vacancy,
                          style='ButtonGreen.TButton')
-        bt1.pack(side=tk.RIGHT, padx=15, pady=10)
+        bt1.pack(side=tk.RIGHT, padx=0, pady=0)
 
         # Pack frames
         top.pack(side=tk.TOP, fill=tk.BOTH)
@@ -706,7 +719,6 @@ class UpdateForm(RecruitingFrame):
         row4_cf.pack(side=tk.TOP, fill=tk.X, pady=5)
         row5_cf.pack(side=tk.TOP, fill=tk.X, pady=5)
         row6_cf.pack(side=tk.TOP, fill=tk.X, pady=5)
-
 
     def _upload_cv(self):
         filename = fd.askopenfilename()
@@ -726,13 +738,14 @@ class UpdateForm(RecruitingFrame):
     def _remove_uploaded_file(self):
         os.remove(UPLOAD_PATH + '\\' + self.filenameCV)
 
-
     def _clear(self):
         self.responsible_box.configure(state="readonly")
+        self.plannedDateStartWorkEntry.set_date(datetime.now())
         self.upload_filename = str()
 
     def _fill_from_UpdateForm(self, id, internalID, officeName,
-                              departmentName, responsibleUser, statusID, fileCV):
+                              departmentName, responsibleUser, statusID,
+                              fileCV, startWork):
         """ When button "Управление заявкой" from PreviewForm is activated,
         fill some fields taken from choosed in PreviewForm request.
         """
@@ -745,22 +758,25 @@ class UpdateForm(RecruitingFrame):
                                    'Офис : ' + officeName + '\n' +
                                    'Подразделение: ' + departmentName
                                    )
-        if statusID in (1,4):
+        if statusID in (1, 4):
             self.bt_upload.config(state=tk.DISABLED)
             self.status_box.configure(state="disabled")
             self.upload_btn_text.set("Выбрать файл")
+            self.plannedDateStartWorkEntry.config(state=tk.DISABLED)
         elif statusID == 2:
             self.bt_upload.config(state=tk.NORMAL)
             self.status_box.config(state=tk.DISABLED)
             self.upload_btn_text.set("Выбрать файл")
+            self.plannedDateStartWorkEntry.configure(state="readonly")
         elif statusID == 3:
             self.responsible_box.configure(state="disabled")
             self.bt_upload.config(state=tk.DISABLED)
             self.upload_btn_text.set("Файл добавлен")
             self.status_box.configure(state="readonly")
+            self.plannedDateStartWorkEntry.set_date(
+                self._convert_str_date(startWork))
+            self.plannedDateStartWorkEntry.config(state=tk.DISABLED)
         self.status_box.set('Не выбрано')
-
-
 
 
     def _convert_date(self, date, output=None):
@@ -779,7 +795,7 @@ class UpdateForm(RecruitingFrame):
             return dat.strftime(output)
         return dat
 
-    def _update_request(self):
+    def _update_vacancy(self):
         messagetitle = 'Изменение заявки'
         is_validated = self._validate_request_creation(messagetitle)
         if not is_validated:
@@ -787,11 +803,15 @@ class UpdateForm(RecruitingFrame):
 
         update_vacancy = {'id': self.request_id,
                           'modifiedUserID': self.UserID,
-                          'responsibleID': self.responsibleID[self.responsible_box.current()],
+                          'responsibleID': self.responsibleID[
+                              self.responsible_box.current()],
                           'fileCV': self.upload_filename,
-                          'statusID': None or self.customStatusID[self.status_box.current()]
+                          'statusID': None or self.customStatusID[
+                              self.status_box.current()],
+                          'startWork': self._convert_date(
+                              self.plannedDateStartWorkEntry.get())
                           }
-        update_success = self.conn.update_request(**update_vacancy)
+        update_success = self.conn.update_vacancy(**update_vacancy)
         if update_success == 1:
             messagebox.showinfo(
                 messagetitle, 'Заявка обновлена'
@@ -837,12 +857,12 @@ class UpdateForm(RecruitingFrame):
         self.attach_label.pack(side=tk.LEFT, padx=0)
 
     def _row5_pack(self):
-        self.status_label.pack(side=tk.LEFT)
-        self.status_box.pack(side=tk.RIGHT, padx=17)
+        self.plannedDateStartWorklabel.pack(side=tk.LEFT)
+        self.plannedDateStartWorkEntry.pack(side=tk.RIGHT, padx=17)
 
     def _row6_pack(self):
-        pass
-
+        self.status_label.pack(side=tk.LEFT)
+        self.status_box.pack(side=tk.RIGHT, padx=17)
 
     def _top_pack(self):
         self.main_label.pack(side=tk.TOP, expand=False, anchor=tk.NW)
@@ -851,7 +871,7 @@ class UpdateForm(RecruitingFrame):
         """ Check if all fields are filled properly. """
         if not self.responsible_box.get():
             messagebox.showerror(
-                messagetitle, 'Не выбран тип бизнеса'
+                messagetitle, 'Вы не загрузили резюме согласованного кандидата'
             )
             return False
         return True
@@ -944,13 +964,13 @@ class PreviewForm(RecruitingFrame):
                                     name='preview_cf')
 
         # column name and width
-        self.headings = {'№ п/п': 40, 'ID': 0, 'Номер заявки': 90, 'UserID': 0,
-                         'Офис': 250,
+        self.headings = {'№ п/п': 30, 'ID': 0, 'Номер заявки': 90, 'UserID': 0,
+                         'Офис': 220,
                          'Департамент': 0,
-                         'Инициатор': 120, 'Дата внесения': 90,
-                         'Плановая дата': 90,
+                         'Инициатор': 120, 'Дата внесения': 70,
+                         'Плановая дата': 70, 'Дата выхода': 70,
                          'Должность кандидата': 0, 'ResponsibleUserID': 0,
-                         'Ответственный от HR': 120,
+                         'Ответственный': 120,
                          'StatusID': 0, 'Тип заявки': 50, 'Статус': 80,
                          'Комментарий': 0,
                          'Файл заявки': 0, 'Файл резюме': 0
@@ -1123,7 +1143,8 @@ class PreviewForm(RecruitingFrame):
 
         for tag, bg, color in zip(self.status_list[1:6], (
                 '#FFFFCC', '#bbded6', '#ffb6b9', '#8DB87C', '#CCCCCC'), (
-                '#000000', '#000000', '#000000','#000000', '#000000')):
+                                          '#000000', '#000000', '#000000',
+                                          '#000000', '#000000')):
             self.table.tag_configure(tag, background=bg, foreground=color)
 
         self.table.bind('<Double-1>', self._show_detail)
@@ -1132,7 +1153,6 @@ class PreviewForm(RecruitingFrame):
         scrolltable = tk.Scrollbar(parent, command=self.table.yview)
         self.table.configure(yscrollcommand=scrolltable.set)
         scrolltable.pack(side=tk.RIGHT, fill=tk.Y)
-
 
     def _raise_Toplevel(self, frame, title, width, height,
                         static_geometry=True, options=()):
@@ -1335,7 +1355,7 @@ class DetailedPreview(tk.Frame):
         bt2.pack(side=tk.RIGHT, padx=5, pady=0)
 
         # show cancel button for initiator users
-        if self.userID == self.initiatorID and self.statusID not in (4,5):
+        if self.userID == self.initiatorID and self.statusID not in (4, 5):
             bt3 = ttk.Button(self.bottom, text="Отменить заявку", width=18,
                              command=self._delete, style='ButtonRed.TButton')
             bt3.pack(side=tk.RIGHT, padx=5, pady=0)
@@ -1345,7 +1365,7 @@ class DetailedPreview(tk.Frame):
         confirmed = messagebox.askyesno(title=mboxname,
                                         message='Вы уверены, что хотите отменить эту заявку?')
         if confirmed:
-            self.conn.update_request(self.ID, self.userID, None, None, 5)
+            self.conn.update_vacancy(self.ID, self.userID, None, None, 5, None)
             messagebox.showinfo(mboxname, 'Заявка отменена')
             self.parentform._refresh()
             self.parent.destroy()

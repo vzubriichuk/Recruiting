@@ -84,7 +84,8 @@ class DBConnect(object):
             return
 
     @monitor_network_state
-    def update_request(self, id, modifiedUserID, responsibleID=None, fileCV=None, statusID=None):
+    def update_vacancy(self, id, modifiedUserID, responsibleID=None, fileCV=None,
+                       statusID=None, startWork=None):
         """ Executes procedure that updates request.
         """
         query = '''
@@ -92,10 +93,12 @@ class DBConnect(object):
                                             @modifiedID = ?,
                                             @responsibleID = ?,
                                             @fileCV = ?,
-                                            @statusID = ?
+                                            @statusID = ?,
+                                            @startWork = ?
                 '''
         try:
-            self.__cursor.execute(query, id, modifiedUserID, responsibleID, fileCV, statusID)
+            self.__cursor.execute(query, id, modifiedUserID, responsibleID,
+                                  fileCV, statusID, startWork)
             request_allowed = self.__cursor.fetchone()[0]
             self.__db.commit()
             return request_allowed
@@ -154,15 +157,6 @@ class DBConnect(object):
         return vacancies
 
     @monitor_network_state
-    def get_current_contract(self, contractID):
-        """ Returns contract info from DB.
-        """
-        query = "exec contracts.get_current_contract @contractID = ?"
-        self.__cursor.execute(query, contractID)
-        return self.__cursor.fetchone()
-
-
-    @monitor_network_state
     def get_status_list(self):
         """ Returns status list.
         """
@@ -176,14 +170,6 @@ class DBConnect(object):
         """
         self.__cursor.execute(query)
         return self.__cursor.fetchall()
-
-    @monitor_network_state
-    def delete_contract(self, deleteID):
-        """ Set status of contract to "delete".
-        """
-        query = "exec contracts.delete_contract @contractID = ?"
-        self.__cursor.execute(query, deleteID)
-        self.__db.commit()
 
 
 if __name__ == '__main__':
