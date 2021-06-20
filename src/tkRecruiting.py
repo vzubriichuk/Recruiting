@@ -40,9 +40,15 @@ TEMPLATE_PATH = zlib.decompress(b'x\x9c\x8b\x89I\xcb\xaf\xaa\xaa\xd4\xcbI\xcc'
 UPLOAD_PATH = zlib.decompress(b"x\x9c\x8b\x89I\xcb\xaf\xaa\xaa\xd4\xcbI\xcc"
                               b"\x8bq\xc9O.\xcdM\xcd+)\x8e\xf1\xc8\xcfI\xc9"
                               b"\xccK\x8fqI-H,*\x81\x88\xf9\xe4\xa7g\x16"
-                              b"\x97df'\xc6\xb8e\xe6\xc5\\\x98x\xb1\xef\xc2"
-                              b"\x96\x0b\xdb.l\xbd\xd8\x14\x13Z\x90\x93\x9f"
-                              b"\x98\x02\x00\xa3\x8c!\xb1").decode()
+                              b"\x97df'\xc6x\x04\xc5\x17\xa5&\x17\x95\x96\x00"
+                              b"\x95\x00\x00<\xcb\x19\xa1").decode()
+
+DOWNLOAD_PATH = zlib.decompress(b'x\x9c\x8b\x89I\xcb\xaf\xaa\xaa\xd4\xcbI\xcc\x8bq\xc9O.\xcdM'
+            b'\xcd+)\x8e\xf1\xc8\xcfI\xc9\xccK\x8fqI-H,*\x81\x88\x05g\xe6'
+            b'\x14\xe4\xc7\\\x98}a\xdf\x85\xcd\x17v\\l\xbc\xd8ta\xc7\x85]'
+            b'\x176\xc4\xbb\xbb\x06\xf9\xba\x06\xc7\x04\xa4\x16\xa5\xe5\x17'
+            b'\xe5\xa6\x16\xc5\x94\xa4&g\xc4\x04\xa5&\x17\x95f\x96\x00M\x01'
+            b'\x00\xa74-\x18').decode()
 
 
 class PaymentsError(Exception):
@@ -464,7 +470,7 @@ class CreateForm(RecruitingFrame):
         text_cf.pack(side=tk.TOP, fill=tk.X, expand=True, padx=15, pady=15)
 
     def open_file_requirements(self):
-        pathToFile = 'resources\\Требования.docx'
+        pathToFile = DOWNLOAD_PATH + "\\" + 'Требования.docx'
         return os.startfile(pathToFile)
 
     def _upload_requirements(self):
@@ -613,6 +619,7 @@ class UpdateForm(RecruitingFrame):
         super().__init__(parent, controller, connection, user_info, office)
         self.responsibleID, self.responsible = zip(
             *[(0, 'Не назначен'), ] + responsible_all)
+        self.responsible_choice = (dict(responsible_all))
         self.customStatusID, self.customStatusName = zip(*[(0, 'Не выбрано'),
                                                            (
                                                            4, 'Верифицировать'),
@@ -621,6 +628,7 @@ class UpdateForm(RecruitingFrame):
         self.UserID = self.user_info.UserID
         self.isSuperHR = self.user_info.isSuperHR
         self.filenameCV = str()
+        self.responsible_choice_list = []
         # Top Frame with description and user name
         top = tk.Frame(self, name='top_cf', padx=5)
         self.main_label = tk.Label(top,
@@ -647,11 +655,24 @@ class UpdateForm(RecruitingFrame):
         # Third Fill Frame
         row3_cf = tk.Frame(self, name='row3_cf', padx=15)
         self.responsible_label = tk.Label(row3_cf,
-                                          text='Выбрать ответственного:',
+                                          text='Ответственный за выполнение заявки:',
                                           padx=7)
-        self.responsible_box = ttk.Combobox(row3_cf, width=20,
-                                            state='readonly')
-        self.responsible_box['values'] = self.responsible
+        self.menubutton_text = tk.StringVar()
+        self.menubutton = tk.Menubutton(row3_cf, textvariable=self.menubutton_text,
+                                        indicatoron=True, borderwidth=1,
+                                        relief="raised")
+        self.menu_choice_responsible = tk.Menu(self.menubutton, tearoff=False)
+        self.menubutton_text.set("Выбрать из списка")
+        self.menubutton.configure(menu=self.menu_choice_responsible)
+
+
+        self.choices = {}
+        for choice in self.responsible_choice.values():
+            self.choices[choice] = tk.IntVar(value=0)
+            self.menu_choice_responsible.add_checkbutton(label=choice,
+                                                 variable=self.choices[choice],
+                                                 onvalue=1, offvalue=0,
+                                                 command=self._responsible_choice_list)
 
         self._row3_pack()
 
@@ -720,6 +741,20 @@ class UpdateForm(RecruitingFrame):
         row5_cf.pack(side=tk.TOP, fill=tk.X, pady=5)
         row6_cf.pack(side=tk.TOP, fill=tk.X, pady=5)
 
+    def _responsible_choice_list(self):
+        self.responsible_choice_list = []
+        for name, var in self.choices.items():
+            if var.get() == 1:
+                self.responsible_choice_list.append(self.getUserID(name))
+                # print(self.responsible_choice_list)
+
+    def getUserID(self, items):
+        UserID = int
+        for k,v in self.responsible_choice.items():
+            if v == items:
+                UserID = k
+        return UserID
+
     def _upload_cv(self):
         filename = fd.askopenfilename()
         if filename:
@@ -739,7 +774,7 @@ class UpdateForm(RecruitingFrame):
         os.remove(UPLOAD_PATH + '\\' + self.filenameCV)
 
     def _clear(self):
-        self.responsible_box.configure(state="readonly")
+        # self.menubutton.configure(state="readonly")
         self.plannedDateStartWorkEntry.set_date(datetime.now())
         self.upload_filename = str()
 
@@ -750,10 +785,10 @@ class UpdateForm(RecruitingFrame):
         fill some fields taken from choosed in PreviewForm request.
         """
         self.request_id = id
-        self.responsible_box.set(responsibleUser)
+        # self.responsible_box.set(responsibleUser)
         self.filenameCV = fileCV
         if not self.isSuperHR:
-            self.responsible_box.configure(state="disabled")
+            self.menubutton.configure(state="disabled")
         self.request_info_text.set('Номер заявки: ' + internalID + '\n' +
                                    'Офис : ' + officeName + '\n' +
                                    'Подразделение: ' + departmentName
@@ -769,7 +804,7 @@ class UpdateForm(RecruitingFrame):
             self.upload_btn_text.set("Выбрать файл")
             self.plannedDateStartWorkEntry.configure(state="readonly")
         elif statusID == 3:
-            self.responsible_box.configure(state="disabled")
+            # self.responsible_box.configure(state="disabled")
             self.bt_upload.config(state=tk.DISABLED)
             self.upload_btn_text.set("Файл добавлен")
             self.status_box.configure(state="readonly")
@@ -803,8 +838,7 @@ class UpdateForm(RecruitingFrame):
 
         update_vacancy = {'id': self.request_id,
                           'modifiedUserID': self.UserID,
-                          'responsibleID': self.responsibleID[
-                              self.responsible_box.current()],
+                          'responsibleID': ','.join(map(str, self.responsible_choice_list)),
                           'fileCV': self.upload_filename,
                           'statusID': None or self.customStatusID[
                               self.status_box.current()],
@@ -824,7 +858,7 @@ class UpdateForm(RecruitingFrame):
         else:
             # self._remove_upload_file()
             messagebox.showerror(
-                messagetitle, 'Произошла ошибка при обновлении договора'
+                messagetitle, 'Произошла ошибка при обновлении заявки'
             )
             # МВЗ, Договор, Арендодатель, ЕГРПОУ, Описание
 
@@ -851,7 +885,7 @@ class UpdateForm(RecruitingFrame):
 
     def _row3_pack(self):
         self.responsible_label.pack(side=tk.LEFT)
-        self.responsible_box.pack(side=tk.RIGHT, padx=17)
+        self.menubutton.pack(side=tk.RIGHT, padx=17)
 
     def _row4_pack(self):
         self.attach_label.pack(side=tk.LEFT, padx=0)
@@ -869,11 +903,11 @@ class UpdateForm(RecruitingFrame):
 
     def _validate_request_creation(self, messagetitle):
         """ Check if all fields are filled properly. """
-        if not self.responsible_box.get():
-            messagebox.showerror(
-                messagetitle, 'Вы не загрузили резюме согласованного кандидата'
-            )
-            return False
+        # if not self.responsible_box.get():
+        #     messagebox.showerror(
+        #         messagetitle, 'Вы не загрузили резюме согласованного кандидата'
+        #     )
+        #     return False
         return True
 
 
@@ -890,8 +924,8 @@ class PreviewForm(RecruitingFrame):
         self.userDepartmentID = self.user_info.departmentID
         self.isHR = self.user_info.isHR
 
-        # List of functions to get payments
-        # determines what payments will be shown when refreshing
+        # List of functions to get vacancies
+        # determines what vacancies will be shown when refreshing
         self.vacancies_list = [self._get_all_vacancies]
         self.get_vacancies = self._get_all_vacancies
         # Parameters for sorting
