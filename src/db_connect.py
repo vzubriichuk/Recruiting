@@ -116,24 +116,33 @@ class DBConnect(object):
         return self.__cursor.fetchall()
 
     @monitor_network_state
-    def get_responsible(self):
+    def get_responsible(self, id=None):
         """ Returns list of active responsible users vacancy's list.
         """
         query = '''
-        exec recruiting.get_responsible 0
+        exec recruiting.get_responsible 0 , @ID = ?
         '''
-        self.__cursor.execute(query)
+        self.__cursor.execute(query, id)
         return self.__cursor.fetchall()
 
-
     @monitor_network_state
-    def get_all_responsible(self):
+    def get_all_responsible(self, id=None):
         """ Returns list of available responsible HR users.
         """
         query = '''
-        exec recruiting.get_responsible 1
+        exec recruiting.get_responsible 1, @ID = ?
         '''
-        self.__cursor.execute(query)
+        self.__cursor.execute(query, id)
+        return self.__cursor.fetchall()
+
+    @monitor_network_state
+    def get_current_responsible(self, id):
+        """ Returns list of available responsible HR users.
+        """
+        query = '''
+        exec recruiting.get_responsible 2, @ID = ?
+        '''
+        self.__cursor.execute(query, id)
         return self.__cursor.fetchall()
 
     @monitor_network_state

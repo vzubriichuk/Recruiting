@@ -173,7 +173,7 @@ class RecruitingApp(tk.Tk):
         # store the state of PreviewForm
         self.state_PreviewForm = 'normal'
         # geometry_storage {Framename:(width, height)}
-        self._geometry = {'PreviewForm': (1200, 550),
+        self._geometry = {'PreviewForm': (1340, 550),
                           'CreateForm': (480, 440),
                           'UpdateForm': (480, 300)}
         # Virtual event for creating request
@@ -1003,11 +1003,11 @@ class PreviewForm(RecruitingFrame):
                          'Департамент': 0,
                          'Инициатор': 120, 'Дата внесения': 70,
                          'Плановая дата': 70, 'Дата выхода': 70,
-                         'Должность кандидата': 0, 'ResponsibleUserID': 0,
+                         'Должность кандидата': 100, 'ResponsibleUserID': 0,
                          'Ответственный': 120,
                          'StatusID': 0, 'Тип заявки': 50, 'Статус': 80,
-                         'Комментарий': 0,
-                         'Файл заявки': 0, 'Файл резюме': 0
+                         'Комментарий': 0,'Файл заявки': 0, 'Файл резюме': 0,
+                         'Кем изменено': 0
                          }
 
         self.table = ttk.Treeview(preview_cf, show='headings',
@@ -1022,7 +1022,7 @@ class PreviewForm(RecruitingFrame):
         head = self.table["columns"]
         msg = 'Heading order must be reviewed. Wrong heading: '
         assert head[1] == 'ID', '{}ID'.format(msg)
-        assert head[-4] == 'Статус', '{}Статус'.format(msg)
+        assert head[-5] == 'Статус', '{}Статус'.format(msg)
 
         # Bottom Frame with buttons
         bottom_cf = tk.Frame(self, name='bottom_cf')
@@ -1157,12 +1157,12 @@ class PreviewForm(RecruitingFrame):
                                                  if
                                                  k not in ('ID', 'Департамент',
                                                            'UserID',
-                                                           'Должность кандидата',
                                                            'ResponsibleUserID',
                                                            'StatusID',
                                                            'Комментарий',
                                                            'Файл заявки',
-                                                           'Файл резюме'))
+                                                           'Файл резюме',
+                                                           'Кем изменено'))
 
             for head, width in self.headings.items():
                 self.table.heading(head, text=head, anchor=tk.CENTER)
@@ -1308,7 +1308,7 @@ class PreviewForm(RecruitingFrame):
                               values=(i + 1,) + tuple(
                                   map(lambda val: self._format_float(val)
                                   if isinstance(val, Decimal) else val, row)),
-                              tags=(row[-4], 'unchecked'))
+                              tags=(row[-5], 'unchecked'))
 
     def _use_filter_and_refresh(self):
         """ Change state to filter usage. """
@@ -1341,7 +1341,7 @@ class DetailedPreview(tk.Frame):
         fonts = (('Arial', 9, 'bold'), ('Arial', 10))
         for row in zip(range(len(head)), zip(head, info)):
             if row[1][0] not in ('№ п/п', 'UserID', 'ID',
-                                 'ResponsibleUserID', 'StatusID'):
+                                 'ResponsibleUserID', 'StatusID', 'Ответственный'):
                 if row[1][0] == 'Файл заявки' and (row[1][1] != '-'
                                                    or row[1][1] is not None):
                     self.filename_preview = row[1][1]
@@ -1350,17 +1350,17 @@ class DetailedPreview(tk.Frame):
                     self.cv_preview = row[1][1]
                 self._newRow(self.table_frame, fonts, *row)
 
-        # self.appr_label = tk.Label(self.top, text='Адреса по договору',
-        #                            padx=10, pady=5, font=('Arial', 10, 'bold'))
+        self.appr_label = tk.Label(self.top, text='Ответственные за заявку',
+                                   padx=10, pady=5, font=('Arial', 10, 'bold'))
 
         # Top Frame with list mvz
-        # self.appr_cf = tk.Frame(self, name='appr_cf', padx=5)
+        self.appr_cf = tk.Frame(self, name='appr_cf', padx=5)
         #
-        # # Add list of all mvz for current contract
-        # fonts = (('Arial', 10), ('Arial', 10))
-        # approvals = self.conn.get_additional_objects(self.contractID)
-        # for rowNumber, row in enumerate(approvals):
-        #     self._newRow(self.appr_cf, fonts, rowNumber + 1, row)
+        # Add list of all mvz for current contract
+        fonts = (('Arial', 10), ('Arial', 10))
+        self.current_responsible = self.conn.get_current_responsible(self.ID)
+        for rowNumber, row in enumerate(self.current_responsible):
+            self._newRow(self.appr_cf, fonts, rowNumber + 1, row)
 
         self._add_buttons()
         self._pack_frames()
@@ -1408,7 +1408,7 @@ class DetailedPreview(tk.Frame):
         """ Adds a new line to the table. """
 
         numberOfLines = []  # List to store number of lines needed
-        columnWidths = [23, 60]  # Width of the different columns in the table
+        columnWidths = [25, 60]  # Width of the different columns in the table
 
         # Find the length and the number of lines of each element and column
         for index, item in enumerate(info):
@@ -1440,9 +1440,10 @@ class DetailedPreview(tk.Frame):
     def _pack_frames(self):
         self.top.pack(side=tk.TOP, fill=tk.X, expand=False)
         self.bottom.pack(side=tk.BOTTOM, fill=tk.X, expand=False)
-        # self.appr_cf.pack(side=tk.TOP, fill=tk.X)
+        self.appr_cf.pack(side=tk.TOP, fill=tk.X)
         self.table_frame.pack()
-        # self.appr_label.pack(side=tk.LEFT, expand=False)
+        if self.current_responsible:
+            self.appr_label.pack(side=tk.LEFT, expand=False)
         self.pack()
 
 
