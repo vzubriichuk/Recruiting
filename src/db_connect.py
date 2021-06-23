@@ -137,7 +137,7 @@ class DBConnect(object):
 
     @monitor_network_state
     def get_current_responsible(self, id):
-        """ Returns list of available responsible HR users.
+        """ Returns list of current responsible HR users.
         """
         query = '''
         exec recruiting.get_responsible 2, @ID = ?
@@ -182,12 +182,10 @@ class DBConnect(object):
 
 
 if __name__ == '__main__':
-    with DBConnect(server='s-kv-center-s59', db='LogisticFinance',
+    with DBConnect(server='s-kv-center-s59', db='AnalyticReports',
                    uid='XXX', pwd='XXX') as sql:
         query = '''
-                exec payment.get_MVZ @UserID = 20,
-                                     @AccessType = 1,
-                                     @isSuperUser = 0
+                exec recruiting.get_responsible 1, @ID = 0
                 '''
         print(sql.raw_query(query))
     print('Connected successfully.')

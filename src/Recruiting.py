@@ -116,7 +116,7 @@ def main():
     except SQLError as e:
         # login failed
         if e.args[0] in ('28000', '42000'):
-            # writelog(e)
+            writelog(e)
             tkr.LoginError()
         else:
             raise

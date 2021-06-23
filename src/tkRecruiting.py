@@ -470,7 +470,7 @@ class CreateForm(RecruitingFrame):
         text_cf.pack(side=tk.TOP, fill=tk.X, expand=True, padx=15, pady=15)
 
     def open_file_requirements(self):
-        pathToFile = DOWNLOAD_PATH + "\\" + 'Требования.docx'
+        pathToFile = DOWNLOAD_PATH + "\\" + 'Требования.xlsx'
         return os.startfile(pathToFile)
 
     def _upload_requirements(self):
@@ -480,7 +480,7 @@ class CreateForm(RecruitingFrame):
             now = str(datetime.now())[:19]
             now = now.replace(":", "_")
             now = now.replace(" ", "_")
-            new_filename = "Требования_" + now + ".docx"
+            new_filename = "Требования_" + now + ".xlsx"
             distPath = UPLOAD_PATH + "\\" + new_filename
             copy(filename, distPath)
             path = Path(distPath)
@@ -746,7 +746,20 @@ class UpdateForm(RecruitingFrame):
         for name, var in self.choices.items():
             if var.get() == 1:
                 self.responsible_choice_list.append(self.getUserID(name))
-                # print(self.responsible_choice_list)
+
+    # Deselect checked row in menu (destroy and create menubutton again)
+    def _deselect_checked_responsible(self):
+        self.responsible_choice_list.clear()
+        self.menu_choice_responsible.destroy()
+        self.menu_choice_responsible = tk.Menu(self.menubutton, tearoff=False)
+        self.menubutton.configure(menu=self.menu_choice_responsible)
+        for choice in self.responsible_choice.values():
+            self.choices[choice] = tk.IntVar(value=0)
+            self.menu_choice_responsible.add_checkbutton(label=choice,
+                                                 variable=self.choices[choice],
+                                                 onvalue=1, offvalue=0,
+                                                 command=self._responsible_choice_list)
+
 
     def getUserID(self, items):
         UserID = int
@@ -774,9 +787,9 @@ class UpdateForm(RecruitingFrame):
         os.remove(UPLOAD_PATH + '\\' + self.filenameCV)
 
     def _clear(self):
-        # self.menubutton.configure(state="readonly")
         self.plannedDateStartWorkEntry.set_date(datetime.now())
         self.upload_filename = str()
+        self._deselect_checked_responsible()
 
     def _fill_from_UpdateForm(self, id, internalID, officeName,
                               departmentName, responsibleUser, statusID,
@@ -923,6 +936,7 @@ class PreviewForm(RecruitingFrame):
         self.userOfficeID = self.user_info.officeID
         self.userDepartmentID = self.user_info.departmentID
         self.isHR = self.user_info.isHR
+        self.isAccess = self.user_info.isAccess
 
         # List of functions to get vacancies
         # determines what vacancies will be shown when refreshing
@@ -1027,17 +1041,17 @@ class PreviewForm(RecruitingFrame):
         # Bottom Frame with buttons
         bottom_cf = tk.Frame(self, name='bottom_cf')
         # Show create buttons only for users with rights
-        if self.user_info.isAccess in (1, 2):
+        if self.isHR == 0 and self.isAccess == 1:
             bt1 = ttk.Button(bottom_cf, text="Создать заявку", width=25,
                              command=lambda: controller._show_frame(
                                  'CreateForm'))
             bt1.pack(side=tk.LEFT, padx=10, pady=10)
 
-            if self.isHR or self.UserID == 1:
-                bt3 = ttk.Button(bottom_cf, text="Управление заявкой",
-                                 width=30,
-                                 command=self._edit_current_request)
-                bt3.pack(side=tk.LEFT, padx=10, pady=10)
+        if self.isHR or self.UserID == 1:
+            bt3 = ttk.Button(bottom_cf, text="Управление заявкой",
+                             width=30,
+                             command=self._edit_current_request)
+            bt3.pack(side=tk.LEFT, padx=10, pady=10)
 
         bt6 = ttk.Button(bottom_cf, text="Выход", width=10,
                          command=controller._quit)
@@ -1328,7 +1342,7 @@ class DetailedPreview(tk.Frame):
         self.rowtags = tags
         self.initiatorID = info[3]
         self.ID = info[1]
-        self.statusID = info[12]
+        self.statusID = info[13]
         self.filename_preview = str()
         self.cv_preview = str()
         # Top Frame with description and user name
