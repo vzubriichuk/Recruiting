@@ -315,6 +315,7 @@ class RecruitingApp(tk.Tk):
         if self.active_frame != 'PreviewForm':
             self._show_frame('PreviewForm')
         elif messagebox.askokcancel("Выход", "Выйти из приложения?"):
+            # destroy app
             self.destroy()
 
 
@@ -343,6 +344,9 @@ class RecruitingFrame(tk.Frame):
 
     def get_officeID(self, office):
         return self.office[office][0]
+
+    def exit_user(self):
+        pass
 
 
 class CreateForm(RecruitingFrame):
@@ -470,7 +474,7 @@ class CreateForm(RecruitingFrame):
         text_cf.pack(side=tk.TOP, fill=tk.X, expand=True, padx=15, pady=15)
 
     def open_file_requirements(self):
-        pathToFile = DOWNLOAD_PATH + "\\" + 'Требования.xlsx'
+        pathToFile = DOWNLOAD_PATH + "\\" + 'Требования.xlsb'
         return os.startfile(pathToFile)
 
     def _upload_requirements(self):
@@ -480,7 +484,7 @@ class CreateForm(RecruitingFrame):
             now = str(datetime.now())[:19]
             now = now.replace(":", "_")
             now = now.replace(" ", "_")
-            new_filename = "Требования_" + now + ".xlsx"
+            new_filename = "Требования_" + now + ".xlsb"
             distPath = UPLOAD_PATH + "\\" + new_filename
             copy(filename, distPath)
             path = Path(distPath)

@@ -98,6 +98,9 @@ def main():
                                    'OfficeName', 'departmentID', 'DepartmentName', 'Position']
                                   )
 
+            # Update user logs
+            sql.update_log(UserLogin)
+
             # load references
             user_info = UserInfo(*access_permitted)
             refs = {'connection': sql,

@@ -64,6 +64,14 @@ class DBConnect(object):
             return None
 
     @monitor_network_state
+    def update_log(self, UserLogin):
+        """ Update logging table.
+        """
+        query = '''exec recruiting.usage_log @UserLogin = ?'''
+
+        self.__cursor.execute(query, UserLogin)
+
+    @monitor_network_state
     def create_request(self, userID, positionName, plannedDate, fileRequirements, commentText):
         """ Executes procedure that creates new request.
         """
