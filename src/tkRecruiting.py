@@ -1045,7 +1045,7 @@ class PreviewForm(RecruitingFrame):
         # Bottom Frame with buttons
         bottom_cf = tk.Frame(self, name='bottom_cf')
         # Show create buttons only for users with rights
-        if self.isHR == 0 and self.isAccess == 1:
+        if self.isHR == 0 and self.isAccess == 1 or self.isHR == 1:
             bt1 = ttk.Button(bottom_cf, text="Создать заявку", width=25,
                              command=lambda: controller._show_frame(
                                  'CreateForm'))
@@ -1194,9 +1194,8 @@ class PreviewForm(RecruitingFrame):
                 self.table.column(head, width=50 * len(head), anchor=tk.CENTER)
 
         for tag, bg, color in zip(self.status_list[1:6], (
-                '#FFFFCC', '#bbded6', '#ffb6b9', '#8DB87C', '#CCCCCC'), (
-                                          '#000000', '#000000', '#000000',
-                                          '#000000', '#000000')):
+                '#FFFFCC', '#bbded6', '#ffb6b9', '#67CF7E', '#CCCCCC'), (
+                '#000000', '#000000', '#000000', '#000000', '#000000')):
             self.table.tag_configure(tag, background=bg, foreground=color)
 
         self.table.bind('<Double-1>', self._show_detail)

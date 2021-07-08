@@ -1,0 +1,13 @@
+29-06-2021 12:17:06 'DBConnect' object has no attribute 'get_offices'
+29-06-2021 21:00:36 image "pyimage2" doesn't exist
+29-06-2021 21:01:10 image "pyimage2" doesn't exist
+29-06-2021 21:07:41 bad side "center": must be top, bottom, left, or right
+29-06-2021 21:08:13 bad side "center": must be top, bottom, left, or right
+29-06-2021 21:11:37 bad side "top, right": must be top, bottom, left, or right
+29-06-2021 21:15:59 cannot use geometry manager grid inside . which already has slaves managed by pack
+29-06-2021 21:22:42 cannot use geometry manager grid inside . which already has slaves managed by pack
+29-06-2021 21:22:56 cannot use geometry manager grid inside . which already has slaves managed by pack
+29-06-2021 21:23:25 cannot use geometry manager grid inside . which already has slaves managed by pack
+29-06-2021 21:25:05 cannot use geometry manager grid inside . which already has slaves managed by pack
+29-06-2021 21:25:45 cannot use geometry manager grid inside . which already has slaves managed by pack
+29-06-2021 21:26:05 cannot use geometry manager grid inside . which already has slaves managed by pack

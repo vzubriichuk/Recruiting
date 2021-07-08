@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Jul 12 15:03:05 2019
-
 @author: v.shkaberda
 """
 from _version import upd_path

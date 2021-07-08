@@ -86,7 +86,7 @@ def main():
             # UserLogin = 'a.figol'
             # UserLogin = 'm.tipukhov'
             # UserLogin = 'p.protsenko'
-            # UserLogin = 'ma.pashchenko'
+            # UserLogin = 'ana.melnyk'
             access_permitted = sql.get_user_info(UserLogin)
             if not access_permitted:
                 tkr.AccessError()
