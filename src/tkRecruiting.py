@@ -940,6 +940,7 @@ class PreviewForm(RecruitingFrame):
         self.userOfficeID = self.user_info.officeID
         self.userDepartmentID = self.user_info.departmentID
         self.isHR = self.user_info.isHR
+        self.isSuperHR = self.user_info.isSuperHR
         self.isAccess = self.user_info.isAccess
 
         # List of functions to get vacancies
@@ -1021,8 +1022,8 @@ class PreviewForm(RecruitingFrame):
                          'Департамент': 0,
                          'Инициатор': 120, 'Дата внесения': 70,
                          'Плановая дата': 70, 'Дата выхода': 70,
-                         'Должность кандидата': 100, 'ResponsibleUserID': 0,
-                         'Ответственный': 120,
+                         'Должность кандидата': 120, 'ResponsibleUserID': 0,
+                         'Ответственный': 100,
                          'StatusID': 0, 'Тип заявки': 50, 'Статус': 80,
                          'Комментарий': 0,'Файл заявки': 0, 'Файл резюме': 0,
                          'Кем изменено': 0
@@ -1045,7 +1046,7 @@ class PreviewForm(RecruitingFrame):
         # Bottom Frame with buttons
         bottom_cf = tk.Frame(self, name='bottom_cf')
         # Show create buttons only for users with rights
-        if self.isHR == 0 and self.isAccess == 1 or self.isHR == 1:
+        if self.isHR == 0 and self.isAccess == 1 or self.isSuperHR == 1:
             bt1 = ttk.Button(bottom_cf, text="Создать заявку", width=25,
                              command=lambda: controller._show_frame(
                                  'CreateForm'))
@@ -1053,8 +1054,7 @@ class PreviewForm(RecruitingFrame):
 
         if self.isHR or self.UserID == 1:
             bt3 = ttk.Button(bottom_cf, text="Управление заявкой",
-                             width=30,
-                             command=self._edit_current_request)
+                             width=30, command=self._edit_current_request)
             bt3.pack(side=tk.LEFT, padx=10, pady=10)
 
         bt6 = ttk.Button(bottom_cf, text="Выход", width=10,
@@ -1184,7 +1184,11 @@ class PreviewForm(RecruitingFrame):
 
             for head, width in self.headings.items():
                 self.table.heading(head, text=head, anchor=tk.CENTER)
-                self.table.column(head, width=width, anchor=tk.CENTER)
+                if head in ('Офис', 'Инициатор', 'Должность кандидата', 'Ответственный'):
+                    self.table.column(head, width=width, anchor="w")
+                else:
+                    self.table.column(head, width=width, anchor=tk.CENTER)
+
 
         else:
             self.table["columns"] = self.headings
@@ -1194,7 +1198,7 @@ class PreviewForm(RecruitingFrame):
                 self.table.column(head, width=50 * len(head), anchor=tk.CENTER)
 
         for tag, bg, color in zip(self.status_list[1:6], (
-                '#FFFFCC', '#bbded6', '#ffb6b9', '#67CF7E', '#CCCCCC'), (
+                '#FFFFCC', '#bbded6', '#ffb6b9', '#C7D59F', '#eae3e3'), (
                 '#000000', '#000000', '#000000', '#000000', '#000000')):
             self.table.tag_configure(tag, background=bg, foreground=color)
 
@@ -1207,7 +1211,7 @@ class PreviewForm(RecruitingFrame):
 
     def _raise_Toplevel(self, frame, title, width, height,
                         static_geometry=True, options=()):
-        """ Create and raise new frame with limits.
+        """ Create and raise new frame.
         Input:
         frame - class, Frame class to be drawn in Toplevel;
         title - str, window title;

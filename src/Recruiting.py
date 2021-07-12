@@ -84,7 +84,7 @@ def main():
             # UserLogin = 'v.kozik'
             # UserLogin = 'o.fortunatova'
             # UserLogin = 'a.figol'
-            # UserLogin = 'm.tipukhov'
+            # UserLogin = 'm.zakrevska'
             # UserLogin = 'p.protsenko'
             # UserLogin = 'ana.melnyk'
             access_permitted = sql.get_user_info(UserLogin)
