@@ -847,6 +847,8 @@ class UpdateForm(RecruitingFrame):
             self.status_box.config(state=tk.DISABLED)
             self.upload_btn_text.set("Выбрать файл")
             self.plannedDateStartWorkEntry.configure(state="readonly")
+            if self.isSuperHR:
+                self.menubutton.configure(state="normal")
         elif statusID == 3:
             # self.responsible_box.configure(state="disabled")
             self.bt_upload.config(state=tk.DISABLED)
