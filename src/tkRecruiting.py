@@ -24,9 +24,13 @@ import tkinter as tk
 import ast
 
 # example of subsription and default recipient
-EMAIL_TO = b'\xd0\xa4\xd0\xbe\xd0\xb7\xd0\xb7\xd0\xb8|\
-\xd0\x9b\xd0\xbe\xd0\xb3\xd0\xb8\xd1\x81\xd1\x82\xd0\xb8\xd0\xba\xd0\xb0|\
-\xd0\x90\xd0\xbd\xd0\xb0\xd0\xbb\xd0\xb8\xd1\x82\xd0\xb8\xd0\xba\xd0\xb8'.decode()
+# EMAIL_TO = b'\xd0\xa4\xd0\xbe\xd0\xb7\xd0\xb7\xd0\xb8|\
+# \xd0\x9b\xd0\xbe\xd0\xb3\xd0\xb8\xd1\x81\xd1\x82\xd0\xb8\xd0\xba\xd0\xb0|\
+# \xd0\x90\xd0\xbd\xd0\xb0\xd0\xbb\xd0\xb8\xd1\x82\xd0\xb8\xd0\xba\xd0\xb8'.decode()
+EMAIL_TO = zlib.decompress(b'x\x9c\xbb\xb0\xe4\xc2\xbe\x0b\xdb\x81pG\xcd\x85'
+                           b'\xd9@\xe6\xe6\x0b;.6^l\xba\xb0\xe3\xc2\xae\x0b'
+                           b'\x1bj.\xcc\xb9\xb0\x01\xcc\xddz\xb1\xe1\xc2\x14 '
+                           b'\xbb\xe9\xc2\x06\x00\xa0e#\xea').decode()
 # example of path to independent report
 TEMPLATE_PATH = zlib.decompress(b'x\x9c\x8b\x89I\xcb\xaf\xaa\xaa\xd4\xcbI\xcc'
                                 b'\x8bq\xc9O.\xcdM\xcd+)\x8e\xf1\xc8\xcfI\xc9'
@@ -42,6 +46,11 @@ UPLOAD_PATH = zlib.decompress(b"x\x9c\x8b\x89I\xcb\xaf\xaa\xaa\xd4\xcbI\xcc"
                               b"\xccK\x8fqI-H,*\x81\x88\xf9\xe4\xa7g\x16"
                               b"\x97df'\xc6x\x04\xc5\x17\xa5&\x17\x95\x96\x00"
                               b"\x95\x00\x00<\xcb\x19\xa1").decode()
+
+
+# UPLOAD_PATH = zlib.decompress(b'x\x9c\x8b\x89I\xcb\xaf\xaa\xaa\xd4\xcbI\xcc'
+#                               b'\x8bq\xc9O.\xcdM\xcd+)\x8e\t\xce\xcc)\xc8\x0f'
+#                               b'\xcbLI\xcd\x07\x00\xd2\x13\x0c\xcc').decode()
 
 DOWNLOAD_PATH = zlib.decompress(b'x\x9c\x8b\x89I\xcb\xaf\xaa\xaa\xd4\xcbI\xcc\x8bq\xc9O.\xcdM'
             b'\xcd+)\x8e\xf1\xc8\xcfI\xc9\xccK\x8fqI-H,*\x81\x88\x05g\xe6'
@@ -127,6 +136,19 @@ class NetworkError(tk.Tk):
         )
         self.destroy()
 
+class UploadError(tk.Tk):
+    """ Raise an error when user doesn't have permission to upload folder.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.withdraw()  # Do not show main window
+        messagebox.showerror(
+            'Ошибка загрузки файла',
+            'Нет прав доступа к каталогу загрузки.\n'
+            'Для получения прав обратитесь на рассылку ' + EMAIL_TO
+        )
+        self.destroy()
 
 class RestartRequiredAfterUpdateError(tk.Tk):
     """ Raise a message about restart needed after update.
@@ -208,7 +230,7 @@ class RecruitingApp(tk.Tk):
                  ]}),
             ])
             style.configure("HeaderStyle.Treeview.Heading",
-                            background="#f1f1f1", foreground="black",
+                            background="#dddddd", foreground="black",
                             relief='groove', font=('Arial', 8))
             style.map("HeaderStyle.Treeview.Heading",
                       relief=[('active', 'sunken'), ('pressed', 'flat')])
@@ -485,11 +507,14 @@ class CreateForm(RecruitingFrame):
             now = now.replace(":", "_")
             now = now.replace(" ", "_")
             new_filename = "Требования_" + now + ".xlsb"
-            distPath = UPLOAD_PATH + "\\" + new_filename
-            copy(filename, distPath)
-            path = Path(distPath)
-            self.uploaded_filename = path.name
-            self.upload_btn_text.set("Файл добавлен")
+            distinationPath = UPLOAD_PATH + "\\" + new_filename
+            try:
+                copy(filename, distinationPath)
+                path = Path(distinationPath)
+                self.uploaded_filename = path.name
+                self.upload_btn_text.set("Файл добавлен")
+            except PermissionError:
+                UploadError()
 
     def _remove_uploaded_file(self):
         os.remove(UPLOAD_PATH + '\\' + self.uploaded_filename)
@@ -781,9 +806,9 @@ class UpdateForm(RecruitingFrame):
             now = now.replace(":", "_")
             now = now.replace(" ", "_")
             new_filename = file.replace(".", '_' + now + '.')
-            distPath = UPLOAD_PATH + "\\" + new_filename
-            copy(filename, distPath)
-            path = Path(distPath)
+            distinationPath = UPLOAD_PATH + "\\" + new_filename
+            copy(filename, distinationPath)
+            path = Path(distinationPath)
             self.upload_filename = path.name
             self.upload_btn_text.set("Файл добавлен")
 
@@ -815,6 +840,8 @@ class UpdateForm(RecruitingFrame):
             self.status_box.configure(state="disabled")
             self.upload_btn_text.set("Выбрать файл")
             self.plannedDateStartWorkEntry.config(state=tk.DISABLED)
+            if self.isSuperHR:
+                self.menubutton.configure(state="normal")
         elif statusID == 2:
             self.bt_upload.config(state=tk.NORMAL)
             self.status_box.config(state=tk.DISABLED)
@@ -828,6 +855,8 @@ class UpdateForm(RecruitingFrame):
             self.plannedDateStartWorkEntry.set_date(
                 self._convert_str_date(startWork))
             self.plannedDateStartWorkEntry.config(state=tk.DISABLED)
+            if self.isSuperHR:
+                self.menubutton.configure(state="disabled")
         self.status_box.set('Не выбрано')
 
 
@@ -1184,7 +1213,7 @@ class PreviewForm(RecruitingFrame):
 
             for head, width in self.headings.items():
                 self.table.heading(head, text=head, anchor=tk.CENTER)
-                if head in ('Офис', 'Инициатор', 'Должность кандидата', 'Ответственный'):
+                if head in ('Офис', 'Инициатор', 'Должность кандидата', 'Ответственный', 'Статус'):
                     self.table.column(head, width=width, anchor="w")
                 else:
                     self.table.column(head, width=width, anchor=tk.CENTER)
@@ -1199,7 +1228,7 @@ class PreviewForm(RecruitingFrame):
 
         for tag, bg, color in zip(self.status_list[1:6], (
                 '#FFFFCC', '#bbded6', '#ffb6b9', '#C7D59F', '#eae3e3'), (
-                '#000000', '#000000', '#000000', '#000000', '#000000')):
+                '#000000', '#000000', '#000000', '#000000', '#555')):
             self.table.tag_configure(tag, background=bg, foreground=color)
 
         self.table.bind('<Double-1>', self._show_detail)
