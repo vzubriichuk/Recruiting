@@ -850,7 +850,6 @@ class UpdateForm(RecruitingFrame):
             if self.isSuperHR:
                 self.menubutton.configure(state="normal")
         elif statusID == 3:
-            # self.responsible_box.configure(state="disabled")
             self.bt_upload.config(state=tk.DISABLED)
             self.upload_btn_text.set("Файл добавлен")
             self.status_box.configure(state="readonly")
@@ -1153,7 +1152,7 @@ class PreviewForm(RecruitingFrame):
             if request_status == 'Верифицировано':
                 messagebox.showinfo(
                     'Изменение заявки',
-                    'Завка уже верифицирована и изменение в ней данных невозможно.'
+                    'Заявка уже верифицирована и изменение в ней данных невозможно.'
                 )
                 return
             self.controller._fill_UpdateForm(**to_fill)
