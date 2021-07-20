@@ -150,6 +150,19 @@ class UploadError(tk.Tk):
         )
         self.destroy()
 
+class FileNotFound(tk.Tk):
+    """ Raise an error when user doesn't have permission to upload folder.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.withdraw()  # Do not show main window
+        messagebox.showerror(
+            'Ошибка открытия файла',
+            'Требуемый файл не найден.\n'
+        )
+        self.destroy()
+
 class RestartRequiredAfterUpdateError(tk.Tk):
     """ Raise a message about restart needed after update.
     """
@@ -807,10 +820,13 @@ class UpdateForm(RecruitingFrame):
             now = now.replace(" ", "_")
             new_filename = file.replace(".", '_' + now + '.')
             distinationPath = UPLOAD_PATH + "\\" + new_filename
-            copy(filename, distinationPath)
-            path = Path(distinationPath)
-            self.upload_filename = path.name
-            self.upload_btn_text.set("Файл добавлен")
+            try:
+                copy(filename, distinationPath)
+                path = Path(distinationPath)
+                self.upload_filename = path.name
+                self.upload_btn_text.set("Файл добавлен")
+            except PermissionError:
+                UploadError()
 
     def _remove_uploaded_file(self):
         os.remove(UPLOAD_PATH + '\\' + self.filenameCV)
@@ -819,6 +835,7 @@ class UpdateForm(RecruitingFrame):
         self.plannedDateStartWorkEntry.set_date(datetime.now())
         self.upload_filename = str()
         self._deselect_checked_responsible()
+
 
     def _fill_from_UpdateForm(self, id, internalID, officeName,
                               departmentName, responsibleUser, statusID,
@@ -1001,11 +1018,11 @@ class PreviewForm(RecruitingFrame):
         # First Filter Frame with (MVZ, office)
         row1_cf = tk.Frame(filterframe, name='row1_cf', padx=15, pady=5)
 
-        self.office_label = tk.Label(row1_cf, text='Офис', padx=10)
+        self.office_label = tk.Label(row1_cf, text='Офис инициатора', padx=10)
         self.office_box = ttk.Combobox(row1_cf, width=40, state='readonly')
         self.office_box['values'] = list(self.office)
 
-        self.responsible_label = tk.Label(row1_cf, text='Ответственный от HR',
+        self.responsible_label = tk.Label(row1_cf, text='Ответственный за заявку',
                                           padx=20)
         self.responsible_box = ttk.Combobox(row1_cf, width=15,
                                             state='readonly')
@@ -1417,12 +1434,18 @@ class DetailedPreview(tk.Frame):
         self._pack_frames()
 
     def _open_file(self):
-        pathToFile = UPLOAD_PATH + "\\" + self.filename_preview
-        return os.startfile(pathToFile)
+        try:
+            pathToFile = UPLOAD_PATH + "\\" + self.filename_preview
+            return os.startfile(pathToFile)
+        except FileNotFoundError:
+            FileNotFound()
 
     def _open_cv(self):
-        pathToFile = UPLOAD_PATH + "\\" + self.cv_preview
-        return os.startfile(pathToFile)
+        try:
+            pathToFile = UPLOAD_PATH + "\\" + self.cv_preview
+            return os.startfile(pathToFile)
+        except FileNotFoundError:
+            FileNotFound()
 
     def _add_buttons(self):
         # Bottom Frame with buttons

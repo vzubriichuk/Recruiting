@@ -13,3 +13,5 @@
 29-06-2021 21:26:05 cannot use geometry manager grid inside . which already has slaves managed by pack
 12-07-2021 21:02:45 bad anchor "left": must be n, ne, e, se, s, sw, w, nw, or center
 12-07-2021 21:05:14 'dict_items' object does not support indexing
+14-07-2021 12:59:38 [WinError 123] Синтаксическая ошибка в имени файла, имени папки или метке тома: '\\\\fozzy.lan\\Documents\\Holding\\Departments\\Logistika\\HR_recruting\\'
+14-07-2021 13:00:34 'UpdateForm' object has no attribute 'upload_filename'
