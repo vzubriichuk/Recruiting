@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from _version import __version__
-from checkboxtreeview import CheckboxTreeview
 from calendar import month_name
 from datetime import date, datetime
 from decimal import Decimal
-from label_grid import LabelGrid
-from multiselect import MultiselectMenu
 from tkcalendar import DateEntry
 from tkinter import ttk, messagebox
 from tkinter.filedialog import askopenfile
@@ -983,6 +980,8 @@ class PreviewForm(RecruitingFrame):
         self.statusID, self.status_list = zip(*[(None, 'Все'), ] + status_list)
         self.responsibleID, self.responsible = zip(
             *[(None, 'Все'), ] + responsible)
+        self.responsible_choice = (dict(responsible))
+        self.responsible_choice_list = []
         self.UserID = self.user_info.UserID
         self.userOfficeID = self.user_info.officeID
         self.userDepartmentID = self.user_info.departmentID
@@ -1024,9 +1023,22 @@ class PreviewForm(RecruitingFrame):
 
         self.responsible_label = tk.Label(row1_cf, text='Ответственный за заявку',
                                           padx=20)
-        self.responsible_box = ttk.Combobox(row1_cf, width=15,
-                                            state='readonly')
-        self.responsible_box['values'] = self.responsible
+        self.menubutton_text = tk.StringVar()
+        self.menubutton = tk.Menubutton(row1_cf,
+                                        textvariable=self.menubutton_text,
+                                        indicatoron=True, borderwidth=1,
+                                        relief="raised")
+        self.menu_choice_responsible = tk.Menu(self.menubutton, tearoff=False)
+        self.menubutton_text.set("Выбрать из списка")
+        self.menubutton.configure(menu=self.menu_choice_responsible)
+        self.choices = {}
+        for choice in self.responsible_choice.values():
+            self.choices[choice] = tk.IntVar(value=0)
+            self.menu_choice_responsible.add_checkbutton(label=choice,
+                                                         variable=self.choices[
+                                                             choice],
+                                                         onvalue=1, offvalue=0,
+                                                         command=self._responsible_choice_list)
 
         self.status_label = tk.Label(row1_cf, text='Статус заявки', padx=20)
         self.status_box = ttk.Combobox(row1_cf, width=15, state='readonly')
@@ -1120,6 +1132,33 @@ class PreviewForm(RecruitingFrame):
         bottom_cf.pack(side=tk.BOTTOM, fill=tk.X, expand=False)
         preview_cf.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=10, pady=5)
 
+    def _responsible_choice_list(self):
+        self.responsible_choice_list = []
+        for name, var in self.choices.items():
+            if var.get() == 1:
+                self.responsible_choice_list.append(self.getUserID(name))
+
+    # Deselect checked row in menu (destroy and create menubutton again)
+    def _deselect_checked_responsible(self):
+        self.responsible_choice_list.clear()
+        self.menu_choice_responsible.destroy()
+        self.menu_choice_responsible = tk.Menu(self.menubutton, tearoff=False)
+        self.menubutton.configure(menu=self.menu_choice_responsible)
+        for choice in self.responsible_choice.values():
+            self.choices[choice] = tk.IntVar(value=0)
+            self.menu_choice_responsible.add_checkbutton(label=choice,
+                                                 variable=self.choices[choice],
+                                                 onvalue=1, offvalue=0,
+                                                 command=self._responsible_choice_list)
+
+
+    def getUserID(self, items):
+        UserID = int
+        for k,v in self.responsible_choice.items():
+            if v == items:
+                UserID = k
+        return UserID
+
     def _add_copyright(self, parent):
         """ Adds user name in the top right corner. """
         copyright_label = tk.Label(parent, text="О программе",
@@ -1146,9 +1185,8 @@ class PreviewForm(RecruitingFrame):
         self.get_vacancies = self._get_all_vacancies
 
     def _clear_filters(self):
-        # self.initiator_box.set('Все')
         self.office_box.set('Все')
-        self.responsible_box.set('Все')
+        self._deselect_checked_responsible()
         self.status_box.set('Все')
 
     def _edit_current_request(self):
@@ -1205,8 +1243,7 @@ class PreviewForm(RecruitingFrame):
         filters = {
             'statusID': (self.statusID[self.status_box.current()]),
             'officeID': (self.officeID[self.office_box.current()]),
-            'responsibleID': (
-                self.responsibleID[self.responsible_box.current()]),
+            'responsibleID': ','.join(map(str, self.responsible_choice_list)),
             'userOfficeID': self.userOfficeID,
             'userDepartmentID': self.userDepartmentID,
             'isHR': 1 if self.isHR else 0,
@@ -1297,7 +1334,7 @@ class PreviewForm(RecruitingFrame):
         self.office_label.pack(side=tk.LEFT)
         self.office_box.pack(side=tk.LEFT, padx=5, pady=5)
         self.responsible_label.pack(side=tk.LEFT)
-        self.responsible_box.pack(side=tk.LEFT, padx=5, pady=5)
+        self.menubutton.pack(side=tk.LEFT, padx=5, pady=5)
         self.status_label.pack(side=tk.LEFT)
         self.status_box.pack(side=tk.LEFT, padx=5, pady=5)
 

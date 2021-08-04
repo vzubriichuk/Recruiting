@@ -82,7 +82,6 @@ def main():
             UserLogin = getpass.getuser()
             # UserLogin = 'o.liubko'
             # UserLogin = 'v.kozik'
-            # UserLogin = 'o.fortunatova'
             # UserLogin = 'a.figol'
             # UserLogin = 'm.gawronski'
             # UserLogin = 'p.protsenko'
