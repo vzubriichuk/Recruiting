@@ -510,7 +510,7 @@ class CreateForm(RecruitingFrame):
         return os.startfile(pathToFile)
 
     def _upload_requirements(self):
-        filename = fd.askopenfilename()
+        filename = fd.askopenfilename(filetypes=[("Excel files", ".xlsb")])
         if filename:
             # Rename file while uploading
             now = str(datetime.now())[:19]
@@ -539,29 +539,8 @@ class CreateForm(RecruitingFrame):
         if self.uploaded_filename and param == 1:
             self._remove_uploaded_file()
 
-    def _fill_from_PreviewForm(self, office, num_main_contract_entry,
-                               date_main_contract_start, date_main_contract_end
-                               , contragent, responsible, okpo):
-        """ When button "Добавить из договора" from PreviewForm is activated,
-        fill some fields taken from choosed in PreviewForm request.
-        """
-        self.office_current.set(office)
-        self.responsible_box.set(responsible)
-        self.responsible_box.configure(state="readonly")
-        self.num_main_contract_entry.delete(0, tk.END)
-        self.num_main_contract_entry.insert(0, num_main_contract_entry)
-        self.num_main_contract_entry.configure(state="readonly")
-        self.date_main_contract_start.set_date(
-            self._convert_str_date(date_main_contract_start))
-        self.date_main_contract_start.configure(state="readonly")
-        self.date_main_contract_end.set_date(
-            self._convert_str_date(date_main_contract_end))
-        self.date_main_contract_end.configure(state="readonly")
-        self.contragent_entry.delete(0, tk.END)
-        self.contragent_entry.insert(0, contragent)
-        self.contragent_entry.configure(state="readonly")
-        self.okpo_entry.insert(0, okpo)
-        self.square_cost.set('0,00')
+    def _fill_from_PreviewForm(self):
+        pass
 
     def _convert_date(self, date, output=None):
         """ Take date and convert it into output format.
