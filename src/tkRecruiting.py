@@ -572,6 +572,7 @@ class CreateForm(RecruitingFrame):
                    'commentText': self.desc_text.get("1.0", tk.END).strip()
 
                    }
+
         created_success = self.conn.create_request(**request)
         if created_success == 1:
             messagebox.showinfo(
@@ -628,8 +629,12 @@ class CreateForm(RecruitingFrame):
                 messagetitle, 'Не указана должность вакансии'
             )
             return False
+        if self._convert_date(self.plannedClosingDateEntry.get()).date() == datetime.now().date():
+            messagebox.showerror(
+                messagetitle, 'Плановая дата закрытия заявки не может быть равна текущей дате'
+            )
+            return False
         return True
-
 
 class UpdateForm(RecruitingFrame):
     def __init__(self, parent, controller, connection, user_info, office,

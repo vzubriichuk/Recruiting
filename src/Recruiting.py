@@ -80,7 +80,7 @@ def main():
     try:
         with conn as sql:
             UserLogin = getpass.getuser()
-            # UserLogin = 'a.myronyshyna'
+            # UserLogin = 'm.tipukhov'
             # UserLogin = 'v.kozik'
             # UserLogin = 'a.figol'
             # UserLogin = 'm.gawronski'
