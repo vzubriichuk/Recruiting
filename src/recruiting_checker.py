@@ -79,7 +79,7 @@ def main():
     logo_label = Label(root, image=logo)
     logo_label.pack(side='top', pady=80)
 
-    copyright_label = Label(root, text='© 2021 Офис прогнозирования \n Департамент мастер-данных и отчетности')
+    copyright_label = Label(root, text='© 2022 Офис прогнозирования \n Департамент мастер-данных и отчетности')
     copyright_label.pack(side='bottom', pady=15)
 
     label = Label(root,

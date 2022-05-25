@@ -31,10 +31,7 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
-src/resources/Требования.docx
-src/log.txt
-# DB connect info
-pwd.py
+
 
 # Installer logs
 pip-log.txt
@@ -110,3 +107,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+pwd.py
+recruiting_checker.exe
+log.txt

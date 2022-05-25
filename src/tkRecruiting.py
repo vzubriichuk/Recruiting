@@ -16,7 +16,7 @@ from math import floor
 from xl import export_to_excel
 import datetime as dt
 import locale
-import os, zlib
+import os, zlib, sys
 import tkinter as tk
 import ast
 
@@ -201,7 +201,7 @@ class RecruitingApp(tk.Tk):
     def __init__(self, **kwargs):
         super().__init__()
         self.title('Заявки на персонал')
-        self.iconbitmap('resources/file.ico')
+        self.iconbitmap(os.path.join(sys.path[0],'resources/file.ico'))
         # store the state of PreviewForm
         self.state_PreviewForm = 'normal'
         # geometry_storage {Framename:(width, height)}
@@ -1266,7 +1266,7 @@ class PreviewForm(RecruitingFrame):
                 self.table.column(head, width=50 * len(head), anchor=tk.CENTER)
 
         for tag, bg, color in zip(self.status_list[1:6], (
-                '#FFFFCC', '#bbded6', '#ffb6b9', '#C7D59F', '#eae3e3'), (
+                '#ff867c', '#fff9c4', '#ffb6b9', '#80e27e', '#eae3e3'), (
                 '#000000', '#000000', '#000000', '#000000', '#555')):
             self.table.tag_configure(tag, background=bg, foreground=color)
 
@@ -1351,7 +1351,7 @@ class PreviewForm(RecruitingFrame):
                 newlevel.withdraw()
                 # newlevel.transient(self.parent)  # disable minimize/maximize buttons
                 newlevel.title('Просмотр заявки на персонал')
-                newlevel.iconbitmap('resources/file.ico')
+                newlevel.iconbitmap(os.path.join(sys.path[0],'resources/file.ico'))
                 newlevel.bind('<Escape>', lambda e, w=newlevel: w.destroy())
                 DetailedPreview(newlevel, self, self.conn, self.userID,
                                 self.headings,
@@ -1484,7 +1484,7 @@ class DetailedPreview(tk.Frame):
         bt2.pack(side=tk.RIGHT, padx=5, pady=0)
 
         # show cancel button for initiator users
-        if self.userID == self.initiatorID and self.statusID not in (4, 5):
+        if (self.userID == self.initiatorID or self.userID in (1,4)) and self.statusID not in (4, 5) :
             bt3 = ttk.Button(self.bottom, text="Отменить заявку", width=18,
                              command=self._delete, style='ButtonRed.TButton')
             bt3.pack(side=tk.RIGHT, padx=5, pady=0)
@@ -1572,7 +1572,7 @@ class AboutFrame(tk.Frame):
             os.startfile(path)
 
         self.copyright_text.insert(tk.INSERT,
-                                   'Copyright © 2021 Офис прогнозирования\n'
+                                   'Copyright © 2022 Офис прогнозирования\n'
                                    'Департамент мастер-данных и отчетности\n')
         self.copyright_text.insert(tk.INSERT, 'MIT License',
                                    hyperlink.add(link_license))
